@@ -40,25 +40,73 @@ $.plot(placeholder, dummy_data, options);
 
 var alreadyFetched = {};
 // then fetch the data with jQuery
-function onDataReceived(series) {
-	// extract the first coordinate pair so you can see that
-	// data is now an ordinary Javascript object
-	var firstcoordinate = '(' + series.data[0][0] + ', ' + series.data[0][1] + ')';
 
-	// let's add it to our current data
-	if (!alreadyFetched[series.label]) {
-		alreadyFetched[series.label] = true;
-		dummy_data.push(series);
-	}
+function xmlToString(xmlData) { 
+    var xmlString;
+    //IE
+    if (window.ActiveXObject){
+        xmlString = xmlData.xml;
+    }
+    // code for Mozilla, Firefox, Opera, etc.
+    else{
+        xmlString = (new XMLSerializer()).serializeToString(xmlData);
+    }
+    return xmlString;
+}   
+
+function onDataReceived(xml) {
+	console.log(xml);
+	$xml_string = xmlToString(xml);
+	$json = JSON.stringify(x2js.xml_str2json($xml_string));
+	$("#jsonArea").val($json);
+	$object = jQuery.parseJSON($json);
+	$result = $object.BlastOutput.BlastOutput_iterations;
+	$hits = $result.Iteration.Iteration_hits.Hit;
+	var data = [];
+	var values = [];
+	$.each($hits, function(key, value) {
+    //display the key and value pair
+		var pair = [];
+		$length = value.Hit_len;
+		$hit_num = value.Hit_num;
+		$hsp = value.Hit_hsps.Hsp;
+		if( Object.prototype.toString.call( $hsp ) === '[object Array]' ) {
+			$.each($hsp, function(key, object) {
+				$number_aligned = object["Hsp_align-len"];
+				$percentage = $number_aligned/$length;
+				if($percentage>1){
+					$hsp_num = object.Hsp_num;
+					console.log($hit_num + "..." + $hsp_num);
+				}
+				pair.push($number_aligned);
+				pair.push($percentage);
+				values.push(pair);
+			});
+		}
+		else{
+			$number_aligned = $hsp["Hsp_align-len"];
+			$percentage = $number_aligned/$length;
+			pair.push($number_aligned);
+			pair.push($percentage);
+			if($percentage>1){
+				$hsp_num = $hsp.Hsp_num;
+				console.log($hit_num + "..." + $hsp_num);
+			}
+			values.push(pair);
+		}
+	});
 	
-	// and plot all we got
-	$.plot(placeholder, dummy_data, options);
+	$result = {};
+	$result.label = "Agon";
+	$result.data = values;
+	data.push($result);
+	$.plot(placeholder, data, options);
  }
 
 $.ajax({
-	url: 'data-eu-gdp-growth.json',
+	url: 'data/single.xml',
 	method: 'GET',
-	dataType: 'json',
+	dataType: 'xml',
 	success: onDataReceived
 });
 var x2js = new X2JS();
