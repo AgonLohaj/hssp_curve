@@ -41,18 +41,19 @@
 
 
 <script type="text/javascript">
+
 var options = {
 	points: { show: true },
 	xaxis: { tickDecimals: 0, tickSize: 1000 }
 };
-var dummy_data = [];
+var data = [];
 var placeholder = $("#placeholder");
 
-$.plot(placeholder, dummy_data, options);
+function plotData(){
+	$.plot(placeholder, data, options);
+}
 
-var alreadyFetched = {};
-// then fetch the data with jQuery
-
+// xml to string helper method
 function xmlToString(xmlData) { 
     var xmlString;
     //IE
@@ -66,56 +67,65 @@ function xmlToString(xmlData) {
     return xmlString;
 }   
 
-function onDataReceived(xml) {
-	console.log(xml);
-	$xml_string = xmlToString(xml);
-	$("#xmlArea").val($xml_string);
-	$json = JSON.stringify(x2js.xml_str2json($xml_string));
-	$("#jsonArea").val($json);
-	$object = jQuery.parseJSON($json);
-	$result = $object.BlastOutput.BlastOutput_iterations;
-	$hits = $result.Iteration.Iteration_hits.Hit;
-	$label = $result.Iteration["Iteration_query-def"];
-	var data = [];
+function fetchData(){
+
+	var json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
+	$("#jsonArea").val(json);
+	
+	var object = jQuery.parseJSON(json);
+	var result = object.BlastOutput.BlastOutput_iterations;
+	
+	var label = result.Iteration["Iteration_query-def"];
+	var hits = result.Iteration.Iteration_hits.Hit;
+	
 	var values = [];
-	$.each($hits, function(key, value) {
-    //display the key and value pair
-		var pair = [];
-		$length = value.Hit_len;
-		$hit_num = value.Hit_num;
-		$hsp = value.Hit_hsps.Hsp;
-		if( Object.prototype.toString.call( $hsp ) === '[object Array]' ) {
-			$.each($hsp, function(key, object) {
-				$number_aligned = object["Hsp_align-len"];
-				$percentage = $number_aligned/$length;
-				if($percentage>1){
-					$hsp_num = object.Hsp_num;
-					console.log($hit_num + "..." + $hsp_num);
-				}
-				pair.push($number_aligned);
-				pair.push($percentage);
+	
+	$.each(hits, function(key, value) {
+	    //display the key and value pair
+		var hsp = value.Hit_hsps.Hsp;
+
+		if( Object.prototype.toString.call( hsp ) === '[object Array]' ) {
+			$.each(hsp, function(key, object) {
+				var pair = fetchHsspPair(value, object);
 				values.push(pair);
 			});
-		}
-		else{
-			$number_aligned = $hsp["Hsp_align-len"];
-			$percentage = $number_aligned/$length;
-			pair.push($number_aligned);
-			pair.push($percentage);
-			if($percentage>1){
-				$hsp_num = $hsp.Hsp_num;
-				console.log($hit_num + "..." + $hsp_num);
-			}
-			values.push(pair);
+		} else {
+			var pair = fetchHsspPair(value, hsp);
+			values.push(pair);			
 		}
 	});
 	
-	$result = {};
-	$result.label = $label;
-	$result.data = values;
-	data.push($result);
-	$.plot(placeholder, data, options);
- }
+	var result = {};
+	result.label = label;
+	result.data = values;
+	data.push(result);
+}
+
+function fetchHsspPair(value, object){
+
+	var length = value.Hit_len;
+	var hit_num = value.Hit_num;
+
+	var number_aligned = object["Hsp_align-len"];
+	var percentage = number_aligned/length;
+	if(percentage > 1){
+		hsp_num = object.Hsp_num;
+	}
+	
+	var pair = [];	
+	pair.push(number_aligned);
+	pair.push(percentage);
+	return pair;
+}
+
+function onDataReceived(xml) {
+
+	var xml_string = xmlToString(xml);
+	$("#xmlArea").val(xml_string);
+	
+	fetchData();
+	plotData();
+}
 
 $.ajax({
 	url: 'data/single.xml',
@@ -123,53 +133,12 @@ $.ajax({
 	dataType: 'xml',
 	success: onDataReceived
 });
+
 var x2js = new X2JS();
 $("#show_graph").click(function(){
-	$json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
-	$("#jsonArea").val($json);
-	$object = jQuery.parseJSON($json);
-	$result = $object.BlastOutput.BlastOutput_iterations;
-	$label = $result.Iteration["Iteration_query-def"];
-	$hits = $result.Iteration.Iteration_hits.Hit;
-	var data = [];
-	var values = [];
-	$.each($hits, function(key, value) {
-    //display the key and value pair
-		var pair = [];
-		$length = value.Hit_len;
-		$hit_num = value.Hit_num;
-		$hsp = value.Hit_hsps.Hsp;
-		if( Object.prototype.toString.call( $hsp ) === '[object Array]' ) {
-			$.each($hsp, function(key, object) {
-				$number_aligned = object["Hsp_align-len"];
-				$percentage = $number_aligned/$length;
-				if($percentage>1){
-					$hsp_num = object.Hsp_num;
-					console.log($hit_num + "..." + $hsp_num);
-				}
-				pair.push($number_aligned);
-				pair.push($percentage);
-				values.push(pair);
-			});
-		}
-		else{
-			$number_aligned = $hsp["Hsp_align-len"];
-			$percentage = $number_aligned/$length;
-			pair.push($number_aligned);
-			pair.push($percentage);
-			if($percentage>1){
-				$hsp_num = $hsp.Hsp_num;
-				console.log($hit_num + "..." + $hsp_num);
-			}
-			values.push(pair);
-		}
-	});
-	
-	$result = {};
-	$result.label = $label;
-	$result.data = values;
-	data.push($result);
-	$.plot(placeholder, data, options);
-	
+
+	fetchData();
+	plotData();
 });
+
 </script>
