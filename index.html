@@ -1,5 +1,18 @@
 <!DOCTYPE html>
 <head>
+	<style>
+		#container {
+			margin:auto;
+			width:600px;
+			height:600px;
+		}
+		
+		#placeholder {
+			margin-top: 50px;
+			width:600px;
+			height:50%;
+		}
+	</style>
 	<meta charset="utf-8">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
     <script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>
@@ -11,19 +24,18 @@
   <h1 id="title"></h1>
   
   <body>
-    <h1>HSSP CURVE</h1>
+  	<div id="container">
+		<h1>HSSP CURVE</h1>
 
-    <div id="placeholder" style="width:600px;height:300px;"></div>
+		<div id="placeholder"></div>
 	
-	<div id="input_wrapper" style="width:600px; height:300px;">
-		 <textarea id="xmlArea" rows="4" cols="50">
-		</textarea> 
-		
-		<textarea id="jsonArea" rows="4" cols="50">
-		</textarea> 
-		<button id="show_graph" id="calculate" >
-		Extract Graph
-		</button>
+		<div id="input_wrapper">
+			<textarea id="xmlArea" rows="8" cols="110"></textarea> 
+			</br></br>
+			<textarea id="jsonArea" rows="8" cols="110"></textarea> 
+			</br></br>
+			<button id="show_graph" id="calculate" >Extract Graph</button>
+		</div>
 	</div>
 </body>
 
@@ -31,7 +43,7 @@
 <script type="text/javascript">
 var options = {
 	points: { show: true },
-	xaxis: { tickDecimals: 0, tickSize: 500 }
+	xaxis: { tickDecimals: 0, tickSize: 1000 }
 };
 var dummy_data = [];
 var placeholder = $("#placeholder");
