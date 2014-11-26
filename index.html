@@ -62,6 +62,7 @@ function onDataReceived(xml) {
 	$object = jQuery.parseJSON($json);
 	$result = $object.BlastOutput.BlastOutput_iterations;
 	$hits = $result.Iteration.Iteration_hits.Hit;
+	$label = $result.Iteration["Iteration_query-def"];
 	var data = [];
 	var values = [];
 	$.each($hits, function(key, value) {
@@ -97,7 +98,7 @@ function onDataReceived(xml) {
 	});
 	
 	$result = {};
-	$result.label = "Agon";
+	$result.label = $label;
 	$result.data = values;
 	data.push($result);
 	$.plot(placeholder, data, options);
