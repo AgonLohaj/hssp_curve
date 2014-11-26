@@ -57,6 +57,7 @@ function xmlToString(xmlData) {
 function onDataReceived(xml) {
 	console.log(xml);
 	$xml_string = xmlToString(xml);
+	$("#xmlArea").val($xml_string);
 	$json = JSON.stringify(x2js.xml_str2json($xml_string));
 	$("#jsonArea").val($json);
 	$object = jQuery.parseJSON($json);
@@ -116,6 +117,7 @@ $("#show_graph").click(function(){
 	$("#jsonArea").val($json);
 	$object = jQuery.parseJSON($json);
 	$result = $object.BlastOutput.BlastOutput_iterations;
+	$label = $result.Iteration["Iteration_query-def"];
 	$hits = $result.Iteration.Iteration_hits.Hit;
 	var data = [];
 	var values = [];
@@ -152,7 +154,7 @@ $("#show_graph").click(function(){
 	});
 	
 	$result = {};
-	$result.label = "Agon";
+	$result.label = $label;
 	$result.data = values;
 	data.push($result);
 	$.plot(placeholder, data, options);
