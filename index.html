@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="libs/flot/jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="xml2json.js"></script>
+</head>
+<body>
+
+  <h1 id="title"></h1>
+  
+  <body>
+    <h1>HSSP CURVE</h1>
+
+    <div id="placeholder" style="width:600px;height:300px;"></div>
+	
+	<div id="input_wrapper" style="width:600px; height:300px;">
+		 <textarea id="xmlArea" rows="4" cols="50">
+		</textarea> 
+		
+		<textarea id="jsonArea" rows="4" cols="50">
+		</textarea> 
+		<button id="show_graph" id="calculate" >
+		Extract Graph
+		</button>
+	</div>
+</body>
+
+
+<script type="text/javascript">
+var options = {
+	points: { show: true },
+	xaxis: { tickDecimals: 0, tickSize: 500 }
+};
+var dummy_data = [];
+var placeholder = $("#placeholder");
+
+$.plot(placeholder, dummy_data, options);
+
+var alreadyFetched = {};
+// then fetch the data with jQuery
+function onDataReceived(series) {
+	// extract the first coordinate pair so you can see that
+	// data is now an ordinary Javascript object
+	var firstcoordinate = '(' + series.data[0][0] + ', ' + series.data[0][1] + ')';
+
+	// let's add it to our current data
+	if (!alreadyFetched[series.label]) {
+		alreadyFetched[series.label] = true;
+		dummy_data.push(series);
+	}
+	
+	// and plot all we got
+	$.plot(placeholder, dummy_data, options);
+ }
+
+$.ajax({
+	url: 'data-eu-gdp-growth.json',
+	method: 'GET',
+	dataType: 'json',
+	success: onDataReceived
+});
+var x2js = new X2JS();
+$("#show_graph").click(function(){
+	$json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
+	$("#jsonArea").val($json);
+	$object = jQuery.parseJSON($json);
+	$result = $object.BlastOutput.BlastOutput_iterations;
+	$hits = $result.Iteration.Iteration_hits.Hit;
+	var data = [];
+	var values = [];
+	$.each($hits, function(key, value) {
+    //display the key and value pair
+		var pair = [];
+		$length = value.Hit_len;
+		$hit_num = value.Hit_num;
+		$hsp = value.Hit_hsps.Hsp;
+		if( Object.prototype.toString.call( $hsp ) === '[object Array]' ) {
+			$.each($hsp, function(key, object) {
+				$number_aligned = object["Hsp_align-len"];
+				$percentage = $number_aligned/$length;
+				if($percentage>1){
+					$hsp_num = object.Hsp_num;
+					console.log($hit_num + "..." + $hsp_num);
+				}
+				pair.push($number_aligned);
+				pair.push($percentage);
+				values.push(pair);
+			});
+		}
+		else{
+			$number_aligned = $hsp["Hsp_align-len"];
+			$percentage = $number_aligned/$length;
+			pair.push($number_aligned);
+			pair.push($percentage);
+			if($percentage>1){
+				$hsp_num = $hsp.Hsp_num;
+				console.log($hit_num + "..." + $hsp_num);
+			}
+			values.push(pair);
+		}
+	});
+	
+	$result = {};
+	$result.label = "Agon";
+	$result.data = values;
+	data.push($result);
+	$.plot(placeholder, data, options);
+	
+});
+</script>
