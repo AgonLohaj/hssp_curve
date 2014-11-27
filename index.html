@@ -12,6 +12,11 @@
 			width:600px;
 			height:50%;
 		}
+		
+		#input_wrapper {
+			margin-top: 50px;
+			margin-left: 25px;
+		}
 	</style>
 	<meta charset="utf-8">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
@@ -27,6 +32,7 @@
   	<div id="container">
 		<h1>HSSP CURVE</h1>
 
+		Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
 		<div id="placeholder"></div>
 	
 		<div id="input_wrapper">
@@ -42,12 +48,49 @@
 
 <script type="text/javascript">
 
+var showAboveOrEqualTo100 = false;
+
 var options = {
 	points: { show: true },
 	xaxis: { tickDecimals: 0, tickSize: 1000 }
 };
+
 var data = [];
 var placeholder = $("#placeholder");
+
+function refreshVisualization(){
+
+	fetchData();
+	plotData();
+}
+
+function plotHsspCurve(){
+
+	var values = [];
+	
+	for(i = 450; i <= 800; i++){
+	
+		for(j = 450; j < i; j++){
+		
+			var rez = j*100/i;
+		
+			if(rez >= 19 || rez <= 20){
+				var percentage = j/i;	
+				var pair = [];
+				pair.push(j);
+				pair.push(percentage);
+				values.push(pair);
+			}
+		}
+	}
+	
+	var result = {};
+	result.label = "hssp curve";
+	result.data = values;
+	data.push(result);
+
+	$.plot(placeholder, data, options);
+}
 
 function plotData(){
 	$.plot(placeholder, data, options);
@@ -80,17 +123,17 @@ function fetchData(){
 	
 	var values = [];
 	
-	$.each(hits, function(key, value) {
+	$.each(hits, function(key, iterationHit) {
 	    //display the key and value pair
-		var hsp = value.Hit_hsps.Hsp;
+		var hsp = iterationHit.Hit_hsps.Hsp;
 
-		if( Object.prototype.toString.call( hsp ) === '[object Array]' ) {
-			$.each(hsp, function(key, object) {
-				var pair = fetchHsspPair(value, object);
+		if($.isArray(hsp)) {
+			$.each(hsp, function(key, hspObject) {
+				var pair = fetchHsspPair(iterationHit, hspObject);
 				values.push(pair);
 			});
 		} else {
-			var pair = fetchHsspPair(value, hsp);
+			var pair = fetchHsspPair(iterationHit, hsp);
 			values.push(pair);			
 		}
 	});
@@ -101,18 +144,27 @@ function fetchData(){
 	data.push(result);
 }
 
-function fetchHsspPair(value, object){
+function fetchHsspPair(iterationHit, hspObject){
 
-	var length = value.Hit_len;
-	var hit_num = value.Hit_num;
+	var length = iterationHit.Hit_len;
+	var hit_num = iterationHit.Hit_num;
 
-	var number_aligned = object["Hsp_align-len"];
-	var percentage = number_aligned/length;
-	if(percentage > 1){
-		hsp_num = object.Hsp_num;
+	var number_aligned = hspObject["Hsp_align-len"];
+	
+	var PID = number_aligned*100/length;
+	
+	var hssp = 0;
+	if(length > 450){
+		hssp = PID - 19.5;
 	}
 	
+	var percentage = number_aligned/length;
+
 	var pair = [];	
+	if(percentage >= 1 && !showAboveOrEqualTo100){	
+		return pair;
+	}
+
 	pair.push(number_aligned);
 	pair.push(percentage);
 	return pair;
@@ -123,8 +175,7 @@ function onDataReceived(xml) {
 	var xml_string = xmlToString(xml);
 	$("#xmlArea").val(xml_string);
 	
-	fetchData();
-	plotData();
+	refreshVisualization();
 }
 
 $.ajax({
@@ -137,8 +188,13 @@ $.ajax({
 var x2js = new X2JS();
 $("#show_graph").click(function(){
 
-	fetchData();
-	plotData();
+	refreshVisualization();
+});
+
+$("#aboveOrEqualTo100").change(function() {
+	showAboveOrEqualTo100 = $(this).is(":checked");
+	
+	refreshVisualization();
 });
 
 </script>
