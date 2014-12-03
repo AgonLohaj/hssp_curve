@@ -43,6 +43,10 @@
   	<div id="container">
 		<h1>HSSP CURVE</h1>
 		Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
+		</br>
+		Window the data within the given range:
+		<input type="text" id="from" value="11"></input>
+		<input type="text" id="to" value="500"></input>
 		<div id="placeholder"></div>
 	
 		<div id="input_wrapper">
@@ -60,6 +64,8 @@
 
 var showAboveOrEqualTo100 = false;
 
+var from = $("#from").val();
+var to = $("#to").val();
 var options = {
 	points: { show: true },
 	axisLabels: {
@@ -72,7 +78,11 @@ var options = {
             position: 'left',
             axisLabel: '% sequence identity',
         }],
-	xaxis: { tickDecimals: 0, tickSize: 1000 }
+	xaxis: { tickDecimals: 0, tickSize: 100 }
+};
+
+var hsspOptions = {
+	lines: { show: true }
 };
 
 var data = [];
@@ -86,28 +96,34 @@ var placeholder = $("#placeholder");
 function refreshVisualization(){
 	fetchData();
 	plotData();
+	
+	plotHsspCurve();
 }
 
 
 /*
 	description:
-	This function will plot the hsspcurve over the data extracted from the input. Its still work on progress
+	This function plots the hsspcurve over the data extracted from the input.
 */
 function plotHsspCurve(){
 	var values = [];
-	for(i = 450; i <= 800; i++){
-	
-		for(j = 450; j < i; j++){
-		
-			var rez = j*100/i;
-		
-			if(rez >= 19 || rez <= 20){
-				var percentage = j/i;	
-				var pair = [];
-				pair.push(j);
-				pair.push(percentage);
+	for(i = from; i <= to; i++){
+		var pair = [];
+		if(i <=11){
+			pair.push(i);
+			pair.push(1);
+			values.push(pair);
+		}
+		else if(i <=450){
+			var hssp = ((480 * Math.pow(i, -0.32*(1 + Math.exp(-i/1000))))/100);
+				pair.push(i);
+				pair.push(hssp);
 				values.push(pair);
-			}
+		}
+		else{
+			pair.push(i);
+			pair.push(0.195);
+			values.push(pair);
 		}
 	}
 	var result = {};
@@ -192,27 +208,17 @@ function fetchHsspPair(iterationHit, hspObject){
 	var length = iterationHit.Hit_len;
 	var hit_num = iterationHit.Hit_num;
 
-	var number_aligned = hspObject["Hsp_align-len"];
+	var number_aligned = parseInt(hspObject["Hsp_align-len"]);
 	
 	var PID = number_aligned*100/length;
-	
-	var hssp = 0;
-	
-	// Calculation of hssp values based on this paper: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/
-	if(length <=11){
-		hssp = PID - 100;
-	}
-	else if(length <=450){
-		hssp = Math.pow(PID, -0.32*(1 + Math.exp(-length/1000)));
-	}
-	else if(length > 450){
-		hssp = PID - 19.5;
-	}
 	
 	var percentage = number_aligned/length;
 
 	var pair = [];	
 	if(percentage >= 1 && !showAboveOrEqualTo100){	
+		return pair;
+	}
+	if(number_aligned < from || number_aligned > to){
 		return pair;
 	}
 
