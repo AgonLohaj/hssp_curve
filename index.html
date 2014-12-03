@@ -12,6 +12,28 @@
 			height:600px;
 		}
 		
+		#fromTxt {
+			display: block;
+			width:200px;
+			float:left;
+		}
+		#toTxt {
+			display: block;
+			width:200px;
+			float:left;
+		}
+		
+		#from {
+			display: block;
+			width:200px;
+			float:left;
+		}
+		#to {
+			display: block;
+			width:200px;
+			float:left;
+		}
+		
 		#placeholder {
 			margin-top: 50px;
 			width:600px;
@@ -42,19 +64,33 @@
   <body>
   	<div id="container">
 		<h1>HSSP CURVE</h1>
+		<div id="description">
+			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which main contain bad data (test it with your own). All whats implemented is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.</br>
+			</br>Features:
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to window the data within a given range
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
+		</div>
+		</br>
+		
 		Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
 		</br>
-		Window the data within the given range:
+		Window the data within the given range(use 11-500 due to better visualisation of the hssp curve):</br>
+		<label id="fromTxt">From:</label>
 		<input type="text" id="from" value="11"></input>
+		</br>
+		<label id="toTxt">To:</label>
 		<input type="text" id="to" value="500"></input>
 		<div id="placeholder"></div>
 	
 		<div id="input_wrapper">
+			Paste your blast output in this xml area:</br></br>
 			<textarea id="xmlArea" rows="8" cols="110"></textarea> 
 			</br></br>
+			The formated extraction in json is shown here:</br></br>
 			<textarea id="jsonArea" rows="8" cols="110"></textarea> 
 			</br></br>
 			<button id="show_graph" id="calculate" >Extract Graph</button>
+			</br></br>
 		</div>
 	</div>
 </body>
@@ -117,9 +153,9 @@ function plotHsspCurve(){
 		}
 		else if(L <=450){
 			var hssp = ((480 * Math.pow(L, -0.32*(1 + Math.exp(-L/1000))))/100);
-				pair.push(L);
-				pair.push(hssp);
-				values.push(pair);
+			pair.push(L);
+			pair.push(hssp);
+			values.push(pair);
 		}
 		else{
 			pair.push(L);
