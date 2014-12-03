@@ -1,4 +1,9 @@
 <!DOCTYPE html>
+<!--
+	name: index.html
+	author: Bardh and Agon, Lohaj
+-->
+
 <head>
 	<style>
 		#container {
@@ -20,8 +25,14 @@
 	</style>
 	<meta charset="utf-8">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
+	<!-- jQuery will be used by the next libraries so we need to include this -->
     <script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>
+	<!-- flot is an open source library for ploting data (source: http://www.flotcharts.org/) -->
     <script language="javascript" type="text/javascript" src="libs/flot/jquery.flot.js"></script>
+	
+	<!-- helper library to name the axis -->
+	<script language="javascript" type="text/javascript" src="libs/jquery.flot.axislabels.js"></script>
+	<!-- xml2json is a helper to convert the xml format to json -->
 	<script language="javascript" type="text/javascript" src="xml2json.js"></script>
 </head>
 <body>
@@ -31,7 +42,6 @@
   <body>
   	<div id="container">
 		<h1>HSSP CURVE</h1>
-
 		Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
 		<div id="placeholder"></div>
 	
@@ -52,22 +62,42 @@ var showAboveOrEqualTo100 = false;
 
 var options = {
 	points: { show: true },
+	axisLabels: {
+            show: true
+        },
+        xaxes: [{
+            axisLabel: 'foo',
+        }],
+        yaxes: [{
+            position: 'left',
+            axisLabel: 'bar',
+        }, {
+            position: 'right',
+            axisLabel: 'bleem'
+        }],
 	xaxis: { tickDecimals: 0, tickSize: 1000 }
 };
 
 var data = [];
 var placeholder = $("#placeholder");
 
+/*
+	description:
+	This method refreshes the visualisation based on the input fields. It first extracts the data and then plots it to the graph,
+	Multiple data are allowed to be ploted over the same graph
+*/
 function refreshVisualization(){
-
 	fetchData();
 	plotData();
 }
 
-function plotHsspCurve(){
 
+/*
+	description:
+	This function will plot the hsspcurve over the data extracted from the input. Its still work on progress
+*/
+function plotHsspCurve(){
 	var values = [];
-	
 	for(i = 450; i <= 800; i++){
 	
 		for(j = 450; j < i; j++){
@@ -83,7 +113,6 @@ function plotHsspCurve(){
 			}
 		}
 	}
-	
 	var result = {};
 	result.label = "hssp curve";
 	result.data = values;
@@ -92,6 +121,10 @@ function plotHsspCurve(){
 	$.plot(placeholder, data, options);
 }
 
+/*
+	description:
+	Plot the data using the api of flot library
+*/
 function plotData(){
 	$.plot(placeholder, data, options);
 }
@@ -110,8 +143,11 @@ function xmlToString(xmlData) {
     return xmlString;
 }   
 
+/*
+	description:
+	Parse the input from the text field and store the data into a data variable which will be used later to plot
+*/
 function fetchData(){
-
 	var json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
 	$("#jsonArea").val(json);
 	
@@ -127,6 +163,7 @@ function fetchData(){
 	    //display the key and value pair
 		var hsp = iterationHit.Hit_hsps.Hsp;
 
+		// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
 		if($.isArray(hsp)) {
 			$.each(hsp, function(key, hspObject) {
 				var pair = fetchHsspPair(iterationHit, hspObject);
@@ -144,6 +181,15 @@ function fetchData(){
 	data.push(result);
 }
 
+/*
+	input params:
+		iterationHit: object
+		hspObject: object
+	description:
+	This method extracts the information needed for ploting that is the pair of number of residues aligned and percentage of sequence similarity extracted from the objects retained from the xml input
+	output: 
+		pair: of number of residues aligned and percentage of sequence similarity
+*/
 function fetchHsspPair(iterationHit, hspObject){
 
 	var length = iterationHit.Hit_len;
@@ -154,6 +200,9 @@ function fetchHsspPair(iterationHit, hspObject){
 	var PID = number_aligned*100/length;
 	
 	var hssp = 0;
+	
+	// *Important* this won't be used to plot the data and the cases for L <= 450 and L<= 11 aren't considered
+	// Those cases are mentioned in this paper: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/
 	if(length > 450){
 		hssp = PID - 19.5;
 	}
@@ -165,11 +214,18 @@ function fetchHsspPair(iterationHit, hspObject){
 		return pair;
 	}
 
+	// We form number_aligned in the x axis and percentage in y axis
 	pair.push(number_aligned);
 	pair.push(percentage);
 	return pair;
 }
 
+/*
+	input params:
+		xml: xml_file
+	description:
+	This method handels the on receive data from the ajax function that will load a sample input on first run and than call the visualisation
+*/
 function onDataReceived(xml) {
 
 	var xml_string = xmlToString(xml);
@@ -178,6 +234,7 @@ function onDataReceived(xml) {
 	refreshVisualization();
 }
 
+// Call a sample input data located within the repository on first run
 $.ajax({
 	url: 'data/single.xml',
 	method: 'GET',
@@ -186,11 +243,19 @@ $.ajax({
 });
 
 var x2js = new X2JS();
+/*
+	description:
+	Click Handler for the button
+*/
 $("#show_graph").click(function(){
-
 	refreshVisualization();
 });
 
+/*
+	description:
+	Click Handler for the check button. There are some extreme cases in the sample blast input where the percentages would go above 100,
+	as a sort of filter we are setting here the boolean which then will disregard these extreme cases.
+*/
 $("#aboveOrEqualTo100").change(function() {
 	showAboveOrEqualTo100 = $(this).is(":checked");
 	
