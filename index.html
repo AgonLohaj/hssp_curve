@@ -107,21 +107,22 @@ function refreshVisualization(){
 */
 function plotHsspCurve(){
 	var values = [];
-	for(i = from; i <= to; i++){
+	for(L = from; L <= to; L++){
 		var pair = [];
-		if(i <=11){
-			pair.push(i);
+		// Calculating PID based on L - number of residues aligned 
+		if(L <=11){
+			pair.push(L);
 			pair.push(1);
 			values.push(pair);
 		}
-		else if(i <=450){
-			var hssp = ((480 * Math.pow(i, -0.32*(1 + Math.exp(-i/1000))))/100);
-				pair.push(i);
+		else if(L <=450){
+			var hssp = ((480 * Math.pow(L, -0.32*(1 + Math.exp(-L/1000))))/100);
+				pair.push(L);
 				pair.push(hssp);
 				values.push(pair);
 		}
 		else{
-			pair.push(i);
+			pair.push(L);
 			pair.push(0.195);
 			values.push(pair);
 		}
