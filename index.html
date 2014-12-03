@@ -198,9 +198,14 @@ function fetchHsspPair(iterationHit, hspObject){
 	
 	var hssp = 0;
 	
-	// *Important* this won't be used to plot the data and the cases for L <= 450 and L<= 11 aren't considered
-	// Those cases are mentioned in this paper: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/
-	if(length > 450){
+	// Calculation of hssp values based on this paper: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/
+	if(length <=11){
+		hssp = PID - 100;
+	}
+	else if(length <=450){
+		hssp = Math.pow(PID, -0.32*(1 + Math.exp(-length/1000)));
+	}
+	else if(length > 450){
 		hssp = PID - 19.5;
 	}
 	
