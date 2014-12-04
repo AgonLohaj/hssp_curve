@@ -1,15 +1,31 @@
 <!DOCTYPE html>
+<!--
+	name: index.html
+	author: Bardh and Agon, Lohaj
+-->
+
 <head>
 	<style>
 		#container {
 			margin:auto;
-			width:600px;
-			height:600px;
+			width:800px;
+			height:800px;
+		}
+		
+		#fromTxt {
+			display: block;
+			width:200px;
+			float:left;
+		}
+		#toTxt {
+			display: block;
+			width:200px;
+			float:left;
 		}
 		
 		#placeholder {
 			margin-top: 50px;
-			width:600px;
+			width:800px;
 			height:50%;
 		}
 		
@@ -17,11 +33,24 @@
 			margin-top: 50px;
 			margin-left: 25px;
 		}
+		
+		.filter_wrapper {
+			padding:10px;
+			background-color: #fafafa;
+		}
+
+
 	</style>
 	<meta charset="utf-8">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
+	<!-- jQuery will be used by the next libraries so we need to include this -->
     <script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>
+	<!-- flot is an open source library for ploting data (source: http://www.flotcharts.org/) -->
     <script language="javascript" type="text/javascript" src="libs/flot/jquery.flot.js"></script>
+	
+	<!-- helper library to name the axis -->
+	<script language="javascript" type="text/javascript" src="libs/flot/jquery.flot.axislabels.js"></script>
+	<!-- xml2json is a helper to convert the xml format to json -->
 	<script language="javascript" type="text/javascript" src="xml2json.js"></script>
 </head>
 <body>
@@ -31,16 +60,45 @@
   <body>
   	<div id="container">
 		<h1>HSSP CURVE</h1>
+		<div id="description">
+			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which main contain bad data (test it with your own). The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.</br>
+			</br>Features:
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to window the data within a given range
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
+		</div>
+		</br>
+		
+		<div class="filter_wrapper">
+			<h3>Filters</h3>
+			<div class="filter">
+			Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
+			</div>
+	  		<br/>
+	  		<div class="filter">
+			Filter results within the given range:<br/>
+			<input type="text" id="from" value="11"></input> - <input type="text" id="to" value="500"></input>
+			<button id="filter_graph">Filter</button>		
+			</div>
+	  		<br/>
+	  		<div class="filter">
+			HSSP-curve value:
+		  	<input type="range" name="hssp_curve_value" id="hssp_curve_distance" value="0" min="-19.5" max="200">
+		  	<span>0</span>
+			</div>
+			<br/>
+		</div>
 
-		Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
 		<div id="placeholder"></div>
 	
 		<div id="input_wrapper">
-			<textarea id="xmlArea" rows="8" cols="110"></textarea> 
+			Blast Output in XML:
+			<textarea id="xmlArea" rows="8" cols="130"></textarea> 
 			</br></br>
-			<textarea id="jsonArea" rows="8" cols="110"></textarea> 
+			Blast Output automatically parsed into JSON:			
+			<textarea id="jsonArea" rows="8" cols="130"></textarea> 
 			</br></br>
 			<button id="show_graph" id="calculate" >Extract Graph</button>
+			</br></br></br></br></br></br></br></br></br></br>			
 		</div>
 	</div>
 </body>
@@ -50,40 +108,80 @@
 
 var showAboveOrEqualTo100 = false;
 
+var from = $("#from").val();
+var to = $("#to").val();
+
+var hssp_curve_distance = 0;
+
 var options = {
 	points: { show: true },
-	xaxis: { tickDecimals: 0, tickSize: 1000 }
+	axisLabels: {
+            show: true
+        },
+        xaxes: [{
+            axisLabel: 'number of aligned residues',
+        }],
+        yaxes: [{
+            position: 'left',
+            axisLabel: '% sequence identity',
+        }],
+	xaxis: { tickDecimals: 0, tickSize: 100 }
+};
+
+var hsspOptions = {
+	lines: { show: true }
 };
 
 var data = [];
 var placeholder = $("#placeholder");
 
+/*
+	description:
+	This method refreshes the visualisation based on the input fields. It first extracts the data and then plots it to the graph,
+	Multiple data are allowed to be ploted over the same graph
+*/
 function refreshVisualization(){
-
 	fetchData();
 	plotData();
+	
+	plotHsspCurve();
 }
 
-function plotHsspCurve(){
 
+/*
+	description:
+	This function plots the hsspcurve over the data extracted from the input.
+*/
+function plotHsspCurve(){
 	var values = [];
-	
-	for(i = 450; i <= 800; i++){
-	
-		for(j = 450; j < i; j++){
+	for(L = from; L <= to; L++){
+		var pair = [];
+
+		// Calculating PID based on L - number of residues aligned 
+		var PID = 0;
+		if(L <=11){
+			pair.push(L);
+			PID = 1 + hssp_curve_distance
+			pair.push(PID);
+
+		}
+		else if(L <= 450){
+			var PID = ((480 * Math.pow(L, -0.32*(1 + Math.exp(-L/1000))))/100) + hssp_curve_distance;
+				pair.push(L);
+				pair.push(PID);
+		}
+		else{
+			pair.push(L);
+			PID = 0.195 + hssp_curve_distance;
+			pair.push(PID);
+		}
 		
-			var rez = j*100/i;
-		
-			if(rez >= 19 || rez <= 20){
-				var percentage = j/i;	
-				var pair = [];
-				pair.push(j);
-				pair.push(percentage);
-				values.push(pair);
-			}
+		if(!showAboveOrEqualTo100 && PID > 1.0){
+			
+		} else {
+			values.push(pair);		
 		}
 	}
-	
 	var result = {};
 	result.label = "hssp curve";
 	result.data = values;
@@ -92,6 +190,10 @@ function plotHsspCurve(){
 	$.plot(placeholder, data, options);
 }
 
+/*
+	description:
+	Plot the data using the api of flot library
+*/
 function plotData(){
 	$.plot(placeholder, data, options);
 }
@@ -110,6 +212,10 @@ function xmlToString(xmlData) {
     return xmlString;
 }   
 
+/*
+	description:
+	Parse the input from the text field and store the data into a data variable which will be used later to plot
+*/
 function fetchData(){
 
 	data = [];
@@ -129,6 +235,7 @@ function fetchData(){
 	    //display the key and value pair
 		var hsp = iterationHit.Hit_hsps.Hsp;
 
+		// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
 		if($.isArray(hsp)) {
 			$.each(hsp, function(key, hspObject) {
 				var pair = fetchHsspPair(iterationHit, hspObject);
@@ -146,19 +253,23 @@ function fetchData(){
 	data.push(result);
 }
 
+/*
+	input params:
+		iterationHit: object
+		hspObject: object
+	description:
+	This method extracts the information needed for ploting that is the pair of number of residues aligned and percentage of sequence similarity extracted from the objects retained from the xml input
+	output: 
+		pair: of number of residues aligned and percentage of sequence similarity
+*/
 function fetchHsspPair(iterationHit, hspObject){
 
 	var length = iterationHit.Hit_len;
 	var hit_num = iterationHit.Hit_num;
 
-	var number_aligned = hspObject["Hsp_align-len"];
+	var number_aligned = parseInt(hspObject["Hsp_align-len"]);
 	
 	var PID = number_aligned*100/length;
-	
-	var hssp = 0;
-	if(length > 450){
-		hssp = PID - 19.5;
-	}
 	
 	var percentage = number_aligned/length;
 
@@ -166,12 +277,22 @@ function fetchHsspPair(iterationHit, hspObject){
 	if(percentage >= 1 && !showAboveOrEqualTo100){	
 		return pair;
 	}
+	if(number_aligned < from || number_aligned > to){
+		return pair;
+	}
 
+	// We form number_aligned in the x axis and percentage in y axis
 	pair.push(number_aligned);
 	pair.push(percentage);
 	return pair;
 }
 
+/*
+	input params:
+		xml: xml_file
+	description:
+	This method handels the on receive data from the ajax function that will load a sample input on first run and than call the visualisation
+*/
 function onDataReceived(xml) {
 
 	var xml_string = xmlToString(xml);
@@ -180,6 +301,7 @@ function onDataReceived(xml) {
 	refreshVisualization();
 }
 
+// Call a sample input data located within the repository on first run
 $.ajax({
 	url: 'data/single.xml',
 	method: 'GET',
@@ -188,11 +310,51 @@ $.ajax({
 });
 
 var x2js = new X2JS();
+/*
+	description:
+	Click Handler for the Extract Graph button
+*/
 $("#show_graph").click(function(){
+	refreshVisualization();
+});
+
+/*
+	description:
+	Click Handler for the Filter button which filters the graph based on the range of values (from-to)
+*/
+$("#filter_graph").click(function() {
+	from = $("#from").val();
+	to = $("#to").val();
 
 	refreshVisualization();
 });
 
+/*
+	description:
+	On mouse move handles which writes the value of the slider on the next html element (a span)
+*/
+$('#hssp_curve_distance').mousemove(function() {
+    $(this).next().html(parseInt($(this).val()));
+});
+
+/*
+	description:
+	On change event handler which writes the value of the slider on the next html element (a span),
+	save the new value for the hssp curve distance and refreshes the visualization.
+*/
+$('#hssp_curve_distance').change(function() {
+    $(this).next().html(parseInt($(this).val()));
+    
+	hssp_curve_distance = $(this).val()/100;
+	
+	refreshVisualization();
+});
+
+/*
+	description:
+	Click Handler for the check button. There are some extreme cases in the sample blast input where the percentages would go above 100,
+	as a sort of filter we are setting here the boolean which then will disregard these extreme cases.
+*/
 $("#aboveOrEqualTo100").change(function() {
 	showAboveOrEqualTo100 = $(this).is(":checked");
 	
