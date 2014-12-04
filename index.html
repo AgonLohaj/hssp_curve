@@ -22,6 +22,10 @@
 			margin-top: 50px;
 			margin-left: 25px;
 		}
+		
+		.filter {
+			margin-top:10px;
+		}
 	</style>
 	<meta charset="utf-8">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
@@ -41,20 +45,31 @@
   
   <body>
   	<div id="container">
+  		<div class="filter">
 		<h1>HSSP CURVE</h1>
 		Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
-		</br>
-		Window the data within the given range:
-		<input type="text" id="from" value="11"></input>
-		<input type="text" id="to" value="500"></input>
+		</div>
+  		<div class="filter">
+		Filter results within the given range:
+		<input type="text" id="from" value="11"></input>-<input type="text" id="to" value="500"></input>
+		<button id="filter_graph">Filter</button>		
+		</div>
+  		<div class="filter">
+		HSSP-curve value:
+	  	<input type="range" name="hssp_curve_value" id="hssp_curve_distance" value="0" min="-19.5" max="200">
+	  	<span>0</span>
+		</div>
 		<div id="placeholder"></div>
 	
 		<div id="input_wrapper">
+			Blast Output in XML:
 			<textarea id="xmlArea" rows="8" cols="110"></textarea> 
 			</br></br>
+			Blast Output automatically parsed into JSON:			
 			<textarea id="jsonArea" rows="8" cols="110"></textarea> 
 			</br></br>
 			<button id="show_graph" id="calculate" >Extract Graph</button>
+			</br></br></br></br></br></br></br></br></br></br>			
 		</div>
 	</div>
 </body>
@@ -66,6 +81,9 @@ var showAboveOrEqualTo100 = false;
 
 var from = $("#from").val();
 var to = $("#to").val();
+
+var hssp_curve_distance = 0;
+
 var options = {
 	points: { show: true },
 	axisLabels: {
@@ -109,21 +127,28 @@ function plotHsspCurve(){
 	var values = [];
 	for(i = from; i <= to; i++){
 		var pair = [];
+		var PID = 0;
 		if(i <=11){
 			pair.push(i);
-			pair.push(1);
-			values.push(pair);
+			PID = 1 + hssp_curve_distance
+			pair.push(PID);
+
 		}
 		else if(i <=450){
-			var hssp = ((480 * Math.pow(i, -0.32*(1 + Math.exp(-i/1000))))/100);
+			var PID = ((480 * Math.pow(i, -0.32*(1 + Math.exp(-i/1000))))/100) + hssp_curve_distance;
 				pair.push(i);
-				pair.push(hssp);
-				values.push(pair);
+				pair.push(PID);
 		}
 		else{
 			pair.push(i);
-			pair.push(0.195);
-			values.push(pair);
+			PID = 0.195 + hssp_curve_distance;
+			pair.push(PID);
+		}
+		
+		if(!showAboveOrEqualTo100 && PID > 1.0){
+			
+		} else {
+			values.push(pair);		
 		}
 	}
 	var result = {};
@@ -161,6 +186,9 @@ function xmlToString(xmlData) {
 	Parse the input from the text field and store the data into a data variable which will be used later to plot
 */
 function fetchData(){
+
+	data = [];
+
 	var json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
 	$("#jsonArea").val(json);
 	
@@ -256,6 +284,26 @@ var x2js = new X2JS();
 	Click Handler for the button
 */
 $("#show_graph").click(function(){
+	refreshVisualization();
+});
+
+$("#filter_graph").click(function() {
+	from = $("#from").val();
+	to = $("#to").val();
+
+	refreshVisualization();
+});
+
+
+$('#hssp_curve_distance').mousemove(function() {
+    $(this).next().html(parseInt($(this).val()));
+});
+
+$('#hssp_curve_distance').change(function() {
+    $(this).next().html(parseInt($(this).val()));
+    
+	hssp_curve_distance = $(this).val()/100;
+	
 	refreshVisualization();
 });
 
