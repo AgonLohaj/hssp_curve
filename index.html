@@ -8,13 +8,24 @@
 	<style>
 		#container {
 			margin:auto;
-			width:600px;
-			height:600px;
+			width:800px;
+			height:800px;
+		}
+		
+		#fromTxt {
+			display: block;
+			width:200px;
+			float:left;
+		}
+		#toTxt {
+			display: block;
+			width:200px;
+			float:left;
 		}
 		
 		#placeholder {
 			margin-top: 50px;
-			width:600px;
+			width:800px;
 			height:50%;
 		}
 		
@@ -23,9 +34,12 @@
 			margin-left: 25px;
 		}
 		
-		.filter {
-			margin-top:10px;
+		.filter_wrapper {
+			padding:10px;
+			background-color: #fafafa;
 		}
+
+
 	</style>
 	<meta charset="utf-8">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
@@ -45,28 +59,43 @@
   
   <body>
   	<div id="container">
-  		<div class="filter">
 		<h1>HSSP CURVE</h1>
-		Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
+		<div id="description">
+			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which main contain bad data (test it with your own). The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.</br>
+			</br>Features:
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to window the data within a given range
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
 		</div>
-  		<div class="filter">
-		Filter results within the given range:
-		<input type="text" id="from" value="11"></input>-<input type="text" id="to" value="500"></input>
-		<button id="filter_graph">Filter</button>		
+		</br>
+		
+		<div class="filter_wrapper">
+			<h3>Filters</h3>
+			<div class="filter">
+			Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
+			</div>
+	  		<br/>
+	  		<div class="filter">
+			Filter results within the given range:<br/>
+			<input type="text" id="from" value="11"></input> - <input type="text" id="to" value="500"></input>
+			<button id="filter_graph">Filter</button>		
+			</div>
+	  		<br/>
+	  		<div class="filter">
+			HSSP-curve value:
+		  	<input type="range" name="hssp_curve_value" id="hssp_curve_distance" value="0" min="-19.5" max="200">
+		  	<span>0</span>
+			</div>
+			<br/>
 		</div>
-  		<div class="filter">
-		HSSP-curve value:
-	  	<input type="range" name="hssp_curve_value" id="hssp_curve_distance" value="0" min="-19.5" max="200">
-	  	<span>0</span>
-		</div>
+
 		<div id="placeholder"></div>
 	
 		<div id="input_wrapper">
 			Blast Output in XML:
-			<textarea id="xmlArea" rows="8" cols="110"></textarea> 
+			<textarea id="xmlArea" rows="8" cols="130"></textarea> 
 			</br></br>
 			Blast Output automatically parsed into JSON:			
-			<textarea id="jsonArea" rows="8" cols="110"></textarea> 
+			<textarea id="jsonArea" rows="8" cols="130"></textarea> 
 			</br></br>
 			<button id="show_graph" id="calculate" >Extract Graph</button>
 			</br></br></br></br></br></br></br></br></br></br>			
@@ -125,22 +154,24 @@ function refreshVisualization(){
 */
 function plotHsspCurve(){
 	var values = [];
-	for(i = from; i <= to; i++){
+	for(L = from; L <= to; L++){
 		var pair = [];
+
+		// Calculating PID based on L - number of residues aligned 
 		var PID = 0;
-		if(i <=11){
-			pair.push(i);
+		if(L <=11){
+			pair.push(L);
 			PID = 1 + hssp_curve_distance
 			pair.push(PID);
 
 		}
-		else if(i <=450){
-			var PID = ((480 * Math.pow(i, -0.32*(1 + Math.exp(-i/1000))))/100) + hssp_curve_distance;
-				pair.push(i);
+		else if(L <= 450){
+			var PID = ((480 * Math.pow(L, -0.32*(1 + Math.exp(-L/1000))))/100) + hssp_curve_distance;
+				pair.push(L);
 				pair.push(PID);
 		}
 		else{
-			pair.push(i);
+			pair.push(L);
 			PID = 0.195 + hssp_curve_distance;
 			pair.push(PID);
 		}
@@ -281,12 +312,16 @@ $.ajax({
 var x2js = new X2JS();
 /*
 	description:
-	Click Handler for the button
+	Click Handler for the Extract Graph button
 */
 $("#show_graph").click(function(){
 	refreshVisualization();
 });
 
+/*
+	description:
+	Click Handler for the Filter button which filters the graph based on the range of values (from-to)
+*/
 $("#filter_graph").click(function() {
 	from = $("#from").val();
 	to = $("#to").val();
@@ -294,11 +329,19 @@ $("#filter_graph").click(function() {
 	refreshVisualization();
 });
 
-
+/*
+	description:
+	On mouse move handles which writes the value of the slider on the next html element (a span)
+*/
 $('#hssp_curve_distance').mousemove(function() {
     $(this).next().html(parseInt($(this).val()));
 });
 
+/*
+	description:
+	On change event handler which writes the value of the slider on the next html element (a span),
+	save the new value for the hssp curve distance and refreshes the visualization.
+*/
 $('#hssp_curve_distance').change(function() {
     $(this).next().html(parseInt($(this).val()));
     
