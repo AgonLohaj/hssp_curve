@@ -239,12 +239,24 @@ function fetchData(){
 	var object = jQuery.parseJSON(json);
 	var result = object.BlastOutput.BlastOutput_iterations;
 	
-	var label = result.Iteration["Iteration_query-def"];
-	var hits = result.Iteration.Iteration_hits.Hit;
+	if($.isArray(result.Iteration)){
+		$.each(result.Iteration, function(key, iteration){
+			fetchIteration(iteration);
+		});
+	}else{
+		fetchIteration(result.Iteration);
+	}
+}
+
+function fetchIteration(iteration){
+	var label = iteration["Iteration_query-def"];
+	console.log(label);
+	var hits = iteration.Iteration_hits.Hit;
 	
 	var values = [];
 	
-	$.each(hits, function(key, iterationHit) {
+	if($.isArray(hits)){
+		$.each(hits, function(key, iterationHit) {
 	    //display the key and value pair
 		var hsp = iterationHit.Hit_hsps.Hsp;
 
@@ -259,6 +271,22 @@ function fetchData(){
 			values.push(pair);			
 		}
 	});
+	}else{
+		var hsp = hits.Hit_hsps.Hsp;
+
+		// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
+		if($.isArray(hsp)) {
+			$.each(hsp, function(key, hspObject) {
+				var pair = fetchHsspPair(hits, hspObject);
+				values.push(pair);
+			});
+		} else {
+			var pair = fetchHsspPair(hits, hsp);
+			values.push(pair);			
+		}
+	}
+	
+	
 	
 	// save the max and min to "to" and "from"
 	if(from == null && to == null){	
@@ -293,10 +321,10 @@ function fetchHsspPair(iterationHit, hspObject){
 	
 	var PID = number_aligned*100/length;
 	var hssp_score = 0;
-	if(length <= 11){
+	if(number_aligned <= 11){
 		hssp_score = PID - 100;
-	} else if(length <= 450){
-		hssp_score = PID - ((480 * Math.pow(length, -0.32*(1 + Math.exp(-length/1000))))/100);
+	} else if(number_aligned <= 450){
+		hssp_score = PID - (480 * Math.pow(number_aligned, -0.32*(1 + Math.exp(-number_aligned/1000))));
 	} else {
 		hssp_score = PID - 19.5;
 	}	
@@ -324,8 +352,6 @@ function fetchHsspPair(iterationHit, hspObject){
 			return pair;
 		}
 	}
-
-	console.log(hssp_score);
 	
 	// We form number_aligned in the x axis and percentage in y axis
 	pair.push(number_aligned);
