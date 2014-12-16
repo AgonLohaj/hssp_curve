@@ -78,8 +78,8 @@
 	  		<br/>
 -->	  		
 	  		<div class="filter">
-			Filter results within the given range:<br/>
-			<input type="text" id="from" value="11"></input> - <input type="text" id="to" value="500"></input>
+			Filter based on HSSP score:<br/>
+			<input type="text" id="from" value="1"></input> - <input type="text" id="to" value="100"></input>
 			<button id="filter_graph">Filter</button>		
 			</div>
 	  		<br/>
@@ -111,8 +111,12 @@
 
 var showAboveOrEqualTo100 = false;
 
-var from = $("#from").val();
-var to = $("#to").val();
+var from = null;
+var to = null;
+
+var min_hssp_score = 0; // will be found based on the blast input
+var max_hssp_score = 0; // will be found based on the blast input
+var max_sequence_alignment_length = 0;
 
 var hssp_curve_distance = 0;
 
@@ -128,7 +132,7 @@ var options = {
             position: 'left',
             axisLabel: '% sequence identity',
         }],
-	xaxis: { tickDecimals: 0, tickSize: 20 },
+	xaxis: { tickDecimals: 0, tickSize: 300 }, // this is set later on when the input is fetched
 	yaxis: { tickDecimals: 0, tickSize: 10, max: 100, tickFormatter:
 		function formatter(val, axis) {
 			return val + "%";
@@ -158,7 +162,9 @@ function refreshVisualization(){
 */
 function plotHsspCurve(){
 	var values = [];
-	for(L = from; L <= to; L++){
+	
+	// TODO: change 0-600 based on the aligned sequences
+	for(L = 0; L <= max_sequence_alignment_length; L++){
 		var pair = [];
 
 		// Calculating PID based on L - number of residues aligned 
@@ -254,6 +260,15 @@ function fetchData(){
 		}
 	});
 	
+	// save the max and min to "to" and "from"
+	if(from == null && to == null){	
+		from = $("#from").val(min_hssp_score);	
+		to = $("#to").val(max_hssp_score);
+	}
+	
+	options.xaxis.max = max_sequence_alignment_length;
+	options.xaxis.tickSize = max_sequence_alignment_length/10;
+	
 	var result = {};
 	result.label = label;
 	result.data = values;
@@ -277,6 +292,14 @@ function fetchHsspPair(iterationHit, hspObject){
 	var number_aligned = parseInt(hspObject["Hsp_align-len"]);
 	
 	var PID = number_aligned*100/length;
+	var hssp_score = 0;
+	if(length <= 11){
+		hssp_score = PID - 100;
+	} else if(length <= 450){
+		hssp_score = PID - ((480 * Math.pow(length, -0.32*(1 + Math.exp(-length/1000))))/100);
+	} else {
+		hssp_score = PID - 19.5;
+	}	
 	
 	var percentage = number_aligned/length;
 
@@ -284,10 +307,26 @@ function fetchHsspPair(iterationHit, hspObject){
 	if(percentage >= 1 && !showAboveOrEqualTo100){	
 		return pair;
 	}
-	if(number_aligned < from || number_aligned > to){
-		return pair;
+	
+	if(hssp_score < min_hssp_score){
+		min_hssp_score = hssp_score;
+	}
+	if(hssp_score > max_hssp_score){
+		max_hssp_score = hssp_score;
+	}
+	if(number_aligned > max_sequence_alignment_length){
+		max_sequence_alignment_length = number_aligned;
+	}
+	
+	// if we have a min and max hssp score (fetched from all the alignments), check for filters
+	if(from != null && to != null){
+		if(hssp_score < from || hssp_score > to){
+			return pair;
+		}
 	}
 
+	console.log(hssp_score);
+	
 	// We form number_aligned in the x axis and percentage in y axis
 	pair.push(number_aligned);
 	pair.push(percentage*100);
