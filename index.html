@@ -128,8 +128,12 @@ var options = {
             position: 'left',
             axisLabel: '% sequence identity',
         }],
-	xaxis: { tickDecimals: 0, tickSize: 100 },
-	yaxis: { tickDecimals: 2, tickSize: 0.1, max: 1 }	
+	xaxis: { tickDecimals: 0, tickSize: 20 },
+	yaxis: { tickDecimals: 0, tickSize: 10, max: 100, tickFormatter:
+		function formatter(val, axis) {
+			return val + "%";
+		} 
+	}	
 };
 
 var data = [];
@@ -162,18 +166,18 @@ function plotHsspCurve(){
 		if(L <=11){
 			pair.push(L);
 			PID = 1 + hssp_curve_distance
-			pair.push(PID);
+			pair.push(PID*100);
 
 		}
 		else if(L <= 450){
 			var PID = ((480 * Math.pow(L, -0.32*(1 + Math.exp(-L/1000))))/100) + hssp_curve_distance;
 				pair.push(L);
-				pair.push(PID);
+				pair.push(PID*100);
 		}
 		else{
 			pair.push(L);
 			PID = 0.195 + hssp_curve_distance;
-			pair.push(PID);
+			pair.push(PID*100);
 		}
 		
 		if(!showAboveOrEqualTo100 && PID > 1.0){
@@ -286,7 +290,7 @@ function fetchHsspPair(iterationHit, hspObject){
 
 	// We form number_aligned in the x axis and percentage in y axis
 	pair.push(number_aligned);
-	pair.push(percentage);
+	pair.push(percentage*100);
 	return pair;
 }
 
