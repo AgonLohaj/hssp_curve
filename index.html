@@ -128,11 +128,8 @@ var options = {
             position: 'left',
             axisLabel: '% sequence identity',
         }],
-	xaxis: { tickDecimals: 0, tickSize: 100 }
-};
-
-var hsspOptions = {
-	lines: { show: true }
+	xaxis: { tickDecimals: 0, tickSize: 100 },
+	yaxis: { tickDecimals: 2, tickSize: 0.1, max: 1 }	
 };
 
 var data = [];
@@ -188,9 +185,12 @@ function plotHsspCurve(){
 	var result = {};
 	result.label = "hssp curve";
 	result.data = values;
+	result['lines'] = { show: true };
+	result['points'] = { show: false };	
 	data.push(result);
 
 	$.plot(placeholder, data, options);
+	
 }
 
 /*
