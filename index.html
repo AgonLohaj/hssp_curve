@@ -5,7 +5,7 @@
 -->
 
 <head>
-	<style>
+	<style type="text/css" >
 		#container {
 			margin:auto;
 			width:800px;
@@ -38,8 +38,15 @@
 			padding:10px;
 			background-color: #fafafa;
 		}
-
-
+		
+		#tooltip{
+			position: absolute;
+			display: none;
+			border: 1px solid #fdd;
+			padding: 2px;
+			background-color: #fee;
+			opacity: 0.80;
+		}
 	</style>
 	<meta charset="utf-8">
 	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
@@ -70,26 +77,37 @@
 		
 		<div class="filter_wrapper">
 			<h3>Filters</h3>
+
+<!--
 			<div class="filter">
 			Show >= 100% <input type="checkbox" id="aboveOrEqualTo100">
 			</div>
 	  		<br/>
+-->	  		
 	  		<div class="filter">
-			Filter results within the given range:<br/>
-			<input type="text" id="from" value="11"></input> - <input type="text" id="to" value="500"></input>
+			Filter based on HSSP score:<br/>
+			<input type="text" id="from" value="1"></input> - <input type="text" id="to" value="100"></input>
 			<button id="filter_graph">Filter</button>		
 			</div>
 	  		<br/>
 	  		<div class="filter">
 			HSSP-curve value:
-		  	<input type="range" name="hssp_curve_value" id="hssp_curve_distance" value="0" min="-19.5" max="200">
+		  	<input type="range" name="hssp_curve_value" id="hssp_curve_distance" step ="1" value="0" min="-20" max="200">
 		  	<span>0</span>
 			</div>
 			<br/>
 		</div>
 
 		<div id="placeholder"></div>
-	
+		<p id="choices">Show:</p>
+		<p id="export">Export:
+			</br>
+			<a href="javascript:void(0)" download="below.txt" id="below">Download #elements below the hssp curve</a>
+			</br>
+			<a href="javascript:void(0)" download="above.txt" id="above">Download #elements above the hssp curve</a>
+		</p>
+		<div id="tooltip"></div>
+		
 		<div id="input_wrapper">
 			Blast Output in XML:
 			<textarea id="xmlArea" rows="8" cols="130"></textarea> 
@@ -108,13 +126,20 @@
 
 var showAboveOrEqualTo100 = false;
 
-var from = $("#from").val();
-var to = $("#to").val();
+var from = null;
+var to = null;
+
+var min_hssp_score = -90; // will be found based on the blast input
+var max_hssp_score = 90; // will be found based on the blast input
+var max_sequence_alignment_length = 0;
 
 var hssp_curve_distance = 0;
 
 var options = {
 	points: { show: true },
+	series: {
+				shadowSize: 0	// Drawing is faster without shadows
+			},
 	axisLabels: {
             show: true
         },
@@ -125,36 +150,142 @@ var options = {
             position: 'left',
             axisLabel: '% sequence identity',
         }],
-	xaxis: { tickDecimals: 0, tickSize: 100 }
+	grid: {
+		hoverable: true,
+	},
+	xaxis: { tickDecimals: 0, tickSize: 300 }, // this is set later on when the input is fetched
+	yaxis: { tickDecimals: 0, tickSize: 10, max: 100, tickFormatter:
+		function formatter(val, axis) {
+			return val + "%";
+		} 
+	}	
 };
 
-var hsspOptions = {
-	lines: { show: true }
-};
-
+var original_data = [];
 var data = [];
+var choices = [];
 var placeholder = $("#placeholder");
+var plot;
+var choiceContainer = $("#choices");
+	
+placeholder.bind("plothover", function (event, pos, item) {
+	if (item) {
+		var x = item.datapoint[0].toFixed(2),
+			y = item.datapoint[1].toFixed(2);
+		if(item.series.label === "hssp curve"){
+			$("#tooltip").html("Hssp Curve with value: " + 	(hssp_curve_distance*100) + " with position:</br>x:" + x + "</br>y:" + y)
+			.css({top: item.pageY+5, left: item.pageX+5})
+			.fadeIn(200);
+		}
+		else{
+			// Find the item on our dataset
+			var hit = data[item.seriesIndex].data[item.dataIndex];
+			$("#tooltip").html("Item with positon:</br>" + x + "</br>y:" + y + "</br> and hssp score:" + hit[2].toFixed(2))
+				.css({top: item.pageY+5, left: item.pageX+5})
+				.fadeIn(200);
+		}
+	} else {
+		$("#tooltip").hide();
+	}
+});
+
+
+function initialise(){
+	fetchData();
+	data = jQuery.extend(true, [], original_data);
+	plotHsspCurve(true);
+	choices = jQuery.extend(true, [], data);
+	refreshDownloadableContent();
+	choiceContainer.html("Show:");
+	$.each(data, function(key, val) {
+        choiceContainer.append('<br/><input type="checkbox" name="' + key +
+                               '" checked="checked" id="id' + key + '">' +
+                               '<label for="id' + key + '">'
+                                + val.label + '</label>');
+    });
+    choiceContainer.find("input").click(reloadData);
+}
 
 /*
 	description:
 	This method refreshes the visualisation based on the input fields. It first extracts the data and then plots it to the graph,
 	Multiple data are allowed to be ploted over the same graph
 */
-function refreshVisualization(){
-	fetchData();
-	plotData();
+function reloadData(){
+	// The data is already there, find and refresh based on the new min and max hssp score
+	var hssp_curve;
+	// Find and store hssp curve
+	for(var i = data.length - 1; i >= 0; i--) {
+		if(data[i].label === "hssp curve") {
+		   hssp_curve = data[i];
+		}
+	}
+	data = jQuery.extend(true, [], original_data);
+	choices = [];
+	data.push(hssp_curve);
+	choiceContainer.find("input:checked").each(function () {
+		var key = $(this).attr("name");
+		if (key && data[key])
+			choices.push(data[key]);
+	});
+	refreshDownloadableContent();
 	
-	plotHsspCurve();
+	plot = $.plot(placeholder, choices, options);
 }
+function makeTextFile(text) {
+    var data = new Blob([text], {type: 'text/plain'});
+    // returns a URL you can use as a href
+    return window.URL.createObjectURL(data);
+  };
 
+function refreshDownloadableContent(){
+	var belowZero = 0;
+	var aboveZero = 0;
+	var belowZeroData = [];
+	var aboveZeroData = [];
+	for(var i = choices.length - 1; i >= 0; i--) {
+		var values = choices[i].data;
+		console.log(choices[i].label + "LENGTH: " + choices[i].data.length);
+		if(choices[i].label != "hssp curve"){
+			for(var j = values.length - 1; j >= 0; j--) {
+				// if we have a min and max hssp score (fetched from all the alignments), check for filters
+				var hssp_score = values[j][2];
+				
+				if(hssp_score < from || hssp_score > to){
+					values.splice(j, 1);
+				}
+				else{
+					if(hssp_score>= (hssp_curve_distance*100)){
+						aboveZero++;
+						aboveZeroData.push(values[j][3]);
+					}
+					else{
+						belowZero++;
+						belowZeroData.push(values[j][3]);
+					}
+				}
+			}
+		}
+	}
+	console.log("Below and above:" + belowZero + ".." + aboveZero + "..." + hssp_curve_distance);
+	var above = document.getElementById('above');
+	above.href = makeTextFile(JSON.stringify(aboveZeroData));
+	var below = document.getElementById('below');
+	below.href = makeTextFile(JSON.stringify(belowZeroData));
+	
+	$( "#below" ).html("Download " + belowZero + " elements below the hssp curve");
+	$( "#above" ).html("Download " + aboveZero + " elements above the hssp curve");
+}
 
 /*
 	description:
 	This function plots the hsspcurve over the data extracted from the input.
 */
-function plotHsspCurve(){
+function plotHsspCurve(refresh){
 	var values = [];
-	for(L = from; L <= to; L++){
+	
+	// TODO: change 0-600 based on the aligned sequences
+	for(L = 0; L <= max_sequence_alignment_length; L++){
 		var pair = [];
 
 		// Calculating PID based on L - number of residues aligned 
@@ -162,18 +293,18 @@ function plotHsspCurve(){
 		if(L <=11){
 			pair.push(L);
 			PID = 1 + hssp_curve_distance
-			pair.push(PID);
+			pair.push(PID*100);
 
 		}
 		else if(L <= 450){
 			var PID = ((480 * Math.pow(L, -0.32*(1 + Math.exp(-L/1000))))/100) + hssp_curve_distance;
 				pair.push(L);
-				pair.push(PID);
+				pair.push(PID*100);
 		}
 		else{
 			pair.push(L);
 			PID = 0.195 + hssp_curve_distance;
-			pair.push(PID);
+			pair.push(PID*100);
 		}
 		
 		if(!showAboveOrEqualTo100 && PID > 1.0){
@@ -185,17 +316,25 @@ function plotHsspCurve(){
 	var result = {};
 	result.label = "hssp curve";
 	result.data = values;
+	result['lines'] = { show: true };
+	result['points'] = { show: false };	
+	
+	// Remove old hssp curve if exists
+	for(var i = data.length - 1; i >= 0; i--) {
+		if(data[i].label === "hssp curve") {
+		   data.splice(i, 1);
+		}
+	}
+	
 	data.push(result);
-
-	$.plot(placeholder, data, options);
-}
-
-/*
-	description:
-	Plot the data using the api of flot library
-*/
-function plotData(){
-	$.plot(placeholder, data, options);
+	if(refresh){
+		plot = $.plot(placeholder, data, options);
+	}
+	else{
+		plot.setData(data);
+		// Since the axes don't change, we don't need to call plot.setupGrid()
+		plot.draw();
+	}
 }
 
 // xml to string helper method
@@ -218,20 +357,31 @@ function xmlToString(xmlData) {
 */
 function fetchData(){
 
-	data = [];
-
+	original_data = [];
 	var json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
 	$("#jsonArea").val(json);
-	
-	var object = jQuery.parseJSON(json);
-	var result = object.BlastOutput.BlastOutput_iterations;
-	
-	var label = result.Iteration["Iteration_query-def"];
-	var hits = result.Iteration.Iteration_hits.Hit;
+	json = jQuery.parseJSON(json);
+	var result = json.BlastOutput.BlastOutput_iterations;
+	var i = 1;
+	if($.isArray(result.Iteration)){
+		$.each(result.Iteration, function(key, iteration){
+			fetchIteration(iteration, i);
+			i++;
+		});
+	}else{
+		fetchIteration(result.Iteration, i);
+	}
+}
+
+function fetchIteration(iteration, id){
+	var label = iteration["Iteration_query-def"];
+	console.log(label);
+	var hits = iteration.Iteration_hits.Hit;
 	
 	var values = [];
 	
-	$.each(hits, function(key, iterationHit) {
+	if($.isArray(hits)){
+		$.each(hits, function(key, iterationHit) {
 	    //display the key and value pair
 		var hsp = iterationHit.Hit_hsps.Hsp;
 
@@ -239,18 +389,51 @@ function fetchData(){
 		if($.isArray(hsp)) {
 			$.each(hsp, function(key, hspObject) {
 				var pair = fetchHsspPair(iterationHit, hspObject);
-				values.push(pair);
+				if(pair.length > 0){
+					values.push(pair);
+				}
 			});
 		} else {
 			var pair = fetchHsspPair(iterationHit, hsp);
-			values.push(pair);			
+			if(pair.length > 0){
+				values.push(pair);
+			}		
 		}
 	});
+	}else{
+		var hsp = hits.Hit_hsps.Hsp;
+
+		// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
+		if($.isArray(hsp)) {
+			$.each(hsp, function(key, hspObject) {
+				var pair = fetchHsspPair(hits, hspObject);
+				if(pair.length > 0){
+					values.push(pair);
+				}
+			});
+		} else {
+			var pair = fetchHsspPair(hits, hsp);
+			if(pair.length > 0){
+				values.push(pair);
+			}
+		}
+	}
+	
+	
+	
+	// save the max and min to "to" and "from"
+	if(from == null && to == null){	
+		from = $("#from").val(min_hssp_score);	
+		to = $("#to").val(max_hssp_score);
+	}
+	
+	options.xaxis.max = max_sequence_alignment_length;
+	options.xaxis.tickSize = max_sequence_alignment_length/10;
 	
 	var result = {};
-	result.label = label;
+	result.label = "Iteration " + id;
 	result.data = values;
-	data.push(result);
+	original_data.push(result);
 }
 
 /*
@@ -270,6 +453,14 @@ function fetchHsspPair(iterationHit, hspObject){
 	var number_aligned = parseInt(hspObject["Hsp_align-len"]);
 	
 	var PID = number_aligned*100/length;
+	var hssp_score = 0;
+	if(number_aligned <= 11){
+		hssp_score = PID - 100;
+	} else if(number_aligned <= 450){
+		hssp_score = PID - (480 * Math.pow(number_aligned, -0.32*(1 + Math.exp(-number_aligned/1000))));
+	} else {
+		hssp_score = PID - 19.5;
+	}	
 	
 	var percentage = number_aligned/length;
 
@@ -277,13 +468,22 @@ function fetchHsspPair(iterationHit, hspObject){
 	if(percentage >= 1 && !showAboveOrEqualTo100){	
 		return pair;
 	}
-	if(number_aligned < from || number_aligned > to){
-		return pair;
+	
+	/*if(hssp_score < min_hssp_score){
+		min_hssp_score = hssp_score;
 	}
-
+	if(hssp_score > max_hssp_score){
+		max_hssp_score = hssp_score;
+	}*/
+	if(number_aligned > max_sequence_alignment_length){
+		max_sequence_alignment_length = number_aligned;
+	}
+	
 	// We form number_aligned in the x axis and percentage in y axis
 	pair.push(number_aligned);
-	pair.push(percentage);
+	pair.push(percentage*100);
+	pair.push(hssp_score);
+	pair.push(hspObject);
 	return pair;
 }
 
@@ -298,7 +498,7 @@ function onDataReceived(xml) {
 	var xml_string = xmlToString(xml);
 	$("#xmlArea").val(xml_string);
 	
-	refreshVisualization();
+	initialise();
 }
 
 // Call a sample input data located within the repository on first run
@@ -315,8 +515,9 @@ var x2js = new X2JS();
 	Click Handler for the Extract Graph button
 */
 $("#show_graph").click(function(){
-	refreshVisualization();
+	initialise();
 });
+
 
 /*
 	description:
@@ -325,8 +526,7 @@ $("#show_graph").click(function(){
 $("#filter_graph").click(function() {
 	from = $("#from").val();
 	to = $("#to").val();
-
-	refreshVisualization();
+	reloadData();
 });
 
 /*
@@ -347,18 +547,19 @@ $('#hssp_curve_distance').change(function() {
     
 	hssp_curve_distance = $(this).val()/100;
 	
-	refreshVisualization();
+	plotHsspCurve(false);
+	refreshDownloadableContent();
 });
 
 /*
 	description:
 	Click Handler for the check button. There are some extreme cases in the sample blast input where the percentages would go above 100,
 	as a sort of filter we are setting here the boolean which then will disregard these extreme cases.
-*/
+
 $("#aboveOrEqualTo100").change(function() {
 	showAboveOrEqualTo100 = $(this).is(":checked");
 	
-	refreshVisualization();
-});
+	refreshEntireVisualization(false);
+});*/
 
 </script>
