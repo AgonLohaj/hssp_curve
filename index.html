@@ -55,6 +55,8 @@
 	<!-- flot is an open source library for ploting data (source: http://www.flotcharts.org/) -->
     <script language="javascript" type="text/javascript" src="libs/flot/jquery.flot.js"></script>
 	
+	<script language="javascript" type="text/javascript" src="libs/jquery_flot_animator/jquery.flot.animator.js"></script>
+	
 	<!-- helper library to name the axis -->
 	<script language="javascript" type="text/javascript" src="libs/flot/jquery.flot.axislabels.js"></script>
 	<!-- xml2json is a helper to convert the xml format to json -->
@@ -191,11 +193,16 @@ placeholder.bind("plothover", function (event, pos, item) {
 	}
 });
 
+var animator = {
+  steps:20,
+  duration:5,
+  direction: "right"
+}
 
 function initialise(){
 	fetchData();
 	data = jQuery.extend(true, [], original_data);
-	plotHsspCurve(true);
+	plotHsspCurve();
 	choices = jQuery.extend(true, [], data);
 	refreshDownloadableContent();
 	choiceContainer.html("Show:");
@@ -206,6 +213,8 @@ function initialise(){
                                 + val.label + '</label>');
     });
     choiceContainer.find("input").click(reloadData);
+	plot = $.plot(placeholder, choices, options);
+	console.log(data);
 }
 
 /*
@@ -243,27 +252,41 @@ function makeTextFile(text) {
 function refreshDownloadableContent(){
 	var belowZero = 0;
 	var aboveZero = 0;
-	var belowZeroData = [];
-	var aboveZeroData = [];
+	var belowZeroData = "";
+	var aboveZeroData = "";
+	var prev_hit_above_id = "";
+	var prev_hit_below_id = "";
 	for(var i = choices.length - 1; i >= 0; i--) {
 		var values = choices[i].data;
 		console.log(choices[i].label + "LENGTH: " + choices[i].data.length);
 		if(choices[i].label != "hssp curve"){
+			aboveZeroData += "Iteration: " + choices[i].label + "\r\n";
+			belowZeroData += "Iteration: " + choices[i].label + "\r\n";
+			
 			for(var j = values.length - 1; j >= 0; j--) {
 				// if we have a min and max hssp score (fetched from all the alignments), check for filters
 				var hssp_score = values[j][2];
-				
 				if(hssp_score < from || hssp_score > to){
 					values.splice(j, 1);
 				}
 				else{
 					if(hssp_score>= (hssp_curve_distance*100)){
 						aboveZero++;
-						aboveZeroData.push(values[j][3]);
+						if(prev_hit_above_id != values[j][4]){
+							prev_hit_above_id = values[j][4];
+							aboveZeroData += "	Hit_ID: " + values[j][4] + "\r\n";
+						}
+						aboveZeroData += "		HSSP_SCORE: " + hssp_score  + "\r\n";
+						//aboveZeroData.push(values[j][3]);
 					}
 					else{
 						belowZero++;
-						belowZeroData.push(values[j][3]);
+						if(prev_hit_below_id != values[j][4]){
+							prev_hit_below_id = values[j][4];
+							belowZeroData += "	Hit_ID: " + values[j][4] + "\r\n";
+						}
+						belowZeroData += "		HSSP_SCORE: " + hssp_score  + "\r\n";
+						//belowZeroData.push(values[j][3]);
 					}
 				}
 			}
@@ -271,9 +294,11 @@ function refreshDownloadableContent(){
 	}
 	console.log("Below and above:" + belowZero + ".." + aboveZero + "..." + hssp_curve_distance);
 	var above = document.getElementById('above');
-	above.href = makeTextFile(JSON.stringify(aboveZeroData));
+	above.href = makeTextFile(aboveZeroData);
+	//above.href = makeTextFile(JSON.stringify(aboveZeroData));
 	var below = document.getElementById('below');
-	below.href = makeTextFile(JSON.stringify(belowZeroData));
+	//below.href = makeTextFile(JSON.stringify(belowZeroData));
+	below.href = makeTextFile(belowZeroData);
 	
 	$( "#below" ).html("Download " + belowZero + " elements below the hssp curve");
 	$( "#above" ).html("Download " + aboveZero + " elements above the hssp curve");
@@ -283,7 +308,7 @@ function refreshDownloadableContent(){
 	description:
 	This function plots the hsspcurve over the data extracted from the input.
 */
-function plotHsspCurve(refresh){
+function plotHsspCurve(){
 	var values = [];
 	
 	// TODO: change 0-600 based on the aligned sequences
@@ -318,6 +343,7 @@ function plotHsspCurve(refresh){
 	var result = {};
 	result.label = "hssp curve";
 	result.data = values;
+	result.animator = animator;
 	result['lines'] = { show: true };
 	result['points'] = { show: false };	
 	
@@ -329,14 +355,15 @@ function plotHsspCurve(refresh){
 	}
 	
 	data.push(result);
-	if(refresh){
-		plot = $.plot(placeholder, data, options);
+	//plot = $.plotAnimator(placeholder, data, options);
+	/*if(refresh){
+		plot = $.plotAnimator(placeholder, data, options);
 	}
 	else{
 		plot.setData(data);
 		// Since the axes don't change, we don't need to call plot.setupGrid()
 		plot.draw();
-	}
+	}*/
 }
 
 // xml to string helper method
@@ -435,6 +462,7 @@ function fetchIteration(iteration, id){
 	var result = {};
 	result.label = "Iteration " + id;
 	result.data = values;
+	result.animator = animator;
 	original_data.push(result);
 }
 
@@ -451,7 +479,7 @@ function fetchHsspPair(iterationHit, hspObject){
 
 	var length = iterationHit.Hit_len;
 	var hit_num = iterationHit.Hit_num;
-
+	var id = iterationHit.Hit_id;
 	var number_aligned = parseInt(hspObject["Hsp_align-len"]);
 	
 	var PID = number_aligned*100/length;
@@ -486,6 +514,7 @@ function fetchHsspPair(iterationHit, hspObject){
 	pair.push(percentage*100);
 	pair.push(hssp_score);
 	pair.push(hspObject);
+	pair.push(id);
 	return pair;
 }
 
@@ -549,8 +578,16 @@ $('#hssp_curve_distance').change(function() {
     
 	hssp_curve_distance = $(this).val()/100;
 	
-	plotHsspCurve(false);
+	data = jQuery.extend(true, [], original_data);
+	plotHsspCurve();
+	choices = [];
+	choiceContainer.find("input:checked").each(function () {
+		var key = $(this).attr("name");
+		if (key && data[key])
+			choices.push(data[key]);
+	});
 	refreshDownloadableContent();
+	plot = $.plot(placeholder, choices, options);
 });
 
 /*
