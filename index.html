@@ -86,7 +86,7 @@
 -->	  		
 	  		<div class="filter">
 			Filter based on HSSP score:<br/>
-			<input type="text" id="from" value="1"></input> - <input type="text" id="to" value="100"></input>
+			<input type="text" id="from" value="1"></input> - <input type="text" id="to" value="80.5"></input>
 			<button id="filter_graph">Filter</button>		
 			</div>
 	  		<br/>
@@ -109,12 +109,14 @@
 		<div id="tooltip"></div>
 		
 		<div id="input_wrapper">
-			Blast Output in XML:
+			Put the content of the blast output in XML here:
 			<textarea id="xmlArea" rows="8" cols="130"></textarea> 
 			</br></br>
+			<p style="display:none">
 			Blast Output automatically parsed into JSON:			
 			<textarea id="jsonArea" rows="8" cols="130"></textarea> 
 			</br></br>
+			</p>
 			<button id="show_graph" id="calculate" >Extract Graph</button>
 			</br></br></br></br></br></br></br></br></br></br>			
 		</div>
@@ -130,7 +132,7 @@ var from = null;
 var to = null;
 
 var min_hssp_score = -90; // will be found based on the blast input
-var max_hssp_score = 90; // will be found based on the blast input
+var max_hssp_score = 80.5; // will be found based on the blast input
 var max_sequence_alignment_length = 0;
 
 var hssp_curve_distance = 0;
