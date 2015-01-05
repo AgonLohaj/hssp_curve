@@ -195,11 +195,12 @@ placeholder.bind("plothover", function (event, pos, item) {
 
 var animator = {
   steps:20,
-  duration:5,
+  duration:10,
   direction: "right"
 }
 
 function initialise(){
+	max_sequence_alignment_length = 0;
 	fetchData();
 	data = jQuery.extend(true, [], original_data);
 	plotHsspCurve();
@@ -214,7 +215,6 @@ function initialise(){
     });
     choiceContainer.find("input").click(reloadData);
 	plot = $.plot(placeholder, choices, options);
-	console.log(data);
 }
 
 /*
@@ -258,7 +258,6 @@ function refreshDownloadableContent(){
 	var prev_hit_below_id = "";
 	for(var i = choices.length - 1; i >= 0; i--) {
 		var values = choices[i].data;
-		console.log(choices[i].label + "LENGTH: " + choices[i].data.length);
 		if(choices[i].label != "hssp curve"){
 			aboveZeroData += "Iteration: " + choices[i].label + "\r\n";
 			belowZeroData += "Iteration: " + choices[i].label + "\r\n";
@@ -292,7 +291,6 @@ function refreshDownloadableContent(){
 			}
 		}
 	}
-	console.log("Below and above:" + belowZero + ".." + aboveZero + "..." + hssp_curve_distance);
 	var above = document.getElementById('above');
 	above.href = makeTextFile(aboveZeroData);
 	//above.href = makeTextFile(JSON.stringify(aboveZeroData));
@@ -355,15 +353,6 @@ function plotHsspCurve(){
 	}
 	
 	data.push(result);
-	//plot = $.plotAnimator(placeholder, data, options);
-	/*if(refresh){
-		plot = $.plotAnimator(placeholder, data, options);
-	}
-	else{
-		plot.setData(data);
-		// Since the axes don't change, we don't need to call plot.setupGrid()
-		plot.draw();
-	}*/
 }
 
 // xml to string helper method
@@ -404,7 +393,6 @@ function fetchData(){
 
 function fetchIteration(iteration, id){
 	var label = iteration["Iteration_query-def"];
-	console.log(label);
 	var hits = iteration.Iteration_hits.Hit;
 	
 	var values = [];
