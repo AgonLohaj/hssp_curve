@@ -48,19 +48,14 @@
 			opacity: 0.80;
 		}
 	</style>
+	<link href="libs/range/jquery.range.css" rel="stylesheet">
 	<meta charset="utf-8">
-	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="excanvas.min.js"></script><![endif]-->
-	<!-- jQuery will be used by the next libraries so we need to include this -->
-    <script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>
-	<!-- flot is an open source library for ploting data (source: http://www.flotcharts.org/) -->
-    <script language="javascript" type="text/javascript" src="libs/flot/jquery.flot.js"></script>
-	
-	<script language="javascript" type="text/javascript" src="libs/jquery_flot_animator/jquery.flot.animator.js"></script>
-	
-	<!-- helper library to name the axis -->
-	<script language="javascript" type="text/javascript" src="libs/flot/jquery.flot.axislabels.js"></script>
 	<!-- xml2json is a helper to convert the xml format to json -->
+	<script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>
 	<script language="javascript" type="text/javascript" src="xml2json.js"></script>
+	
+	<script src="libs/highchart/highcharts.js"></script>
+	<script src="libs/highchart/modules/exporting.js"></script>
 </head>
 <body>
 
@@ -72,7 +67,11 @@
 		<div id="description">
 			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which may contain bad data (test it with your own). The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.</br>
 			</br>Features:
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to window the data within a given range
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to filter based on hssp scores
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to zoom by selecting a part of the graph
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download a screen shot of the graph or print it
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download all the elements that are below or above the hssp ruve in .txt format (hint: check out the pie chart)
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to show/hide different data from the legend of the graph (hint: click the legend items and see what happens)
 			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
 		</div>
 		</br>
@@ -101,14 +100,14 @@
 		</div>
 
 		<div id="placeholder"></div>
-		<p id="choices">Show:</p>
-		<p id="export">Export:
+		<p style="display:none" id="export">Export:
 			</br>
 			<a href="javascript:void(0)" download="below.txt" id="below">Download #elements below the hssp curve</a>
 			</br>
 			<a href="javascript:void(0)" download="above.txt" id="above">Download #elements above the hssp curve</a>
 		</p>
-		<div id="tooltip"></div>
+		<!--<p id="choices">Show:</p>
+		<div id="tooltip"></div>-->
 		
 		<div id="input_wrapper">
 			Put the content of the blast output in XML here:
@@ -128,75 +127,58 @@
 
 <script type="text/javascript">
 
-var showAboveOrEqualTo100 = false;
-
 var from = null;
 var to = null;
-
+			
 var min_hssp_score = -90; // will be found based on the blast input
 var max_hssp_score = 80.5; // will be found based on the blast input
 var max_sequence_alignment_length = 0;
 
 var hssp_curve_distance = 0;
 
-var options = {
-	points: { show: true },
-	series: {
-				shadowSize: 0	// Drawing is faster without shadows
-			},
-	axisLabels: {
-            show: true
-        },
-        xaxes: [{
-            axisLabel: 'number of aligned residues',
-        }],
-        yaxes: [{
-            position: 'left',
-            axisLabel: '% sequence identity',
-        }],
-	grid: {
-		hoverable: true,
-	},
-	xaxis: { tickDecimals: 0, tickSize: 300 }, // this is set later on when the input is fetched
-	yaxis: { tickDecimals: 0, tickSize: 10, max: 100, tickFormatter:
-		function formatter(val, axis) {
-			return val + "%";
-		} 
-	}	
-};
-
 var original_data = [];
 var data = [];
-var choices = [];
 var placeholder = $("#placeholder");
-var plot;
-var choiceContainer = $("#choices");
-	
-placeholder.bind("plothover", function (event, pos, item) {
-	if (item) {
-		var x = item.datapoint[0].toFixed(2),
-			y = item.datapoint[1].toFixed(2);
-		if(item.series.label === "hssp curve"){
-			$("#tooltip").html("Hssp Curve with value: " + 	(hssp_curve_distance*100) + " with position:</br>x:" + x + "</br>y:" + y)
-			.css({top: item.pageY+5, left: item.pageX+5})
-			.fadeIn(200);
-		}
-		else{
-			// Find the item on our dataset
-			var hit = data[item.seriesIndex].data[item.dataIndex];
-			$("#tooltip").html("Item with positon:</br>" + x + "</br>y:" + y + "</br> and hssp score:" + hit[2].toFixed(2))
-				.css({top: item.pageY+5, left: item.pageX+5})
-				.fadeIn(200);
-		}
-	} else {
-		$("#tooltip").hide();
-	}
-});
 
 var animator = {
   steps:20,
-  duration:10,
+  duration:5,
   direction: "right"
+}
+
+function plotPoints(){
+	placeholder.highcharts({
+			title: {
+                text: 'HSSP Curve'
+            },
+			xAxis: {
+				title: {
+					enabled: true,
+					text: 'number of aligned residues'
+				},
+				showLastLabel: true
+			},
+			yAxis: {
+				title: {
+					text: '% sequence identity'
+				},
+				floor :0,
+				ceiling :100
+			},
+			chart: {
+				zoomType: 'xy'
+			},
+			legend: {
+				layout: 'vertical',
+				align: 'center',
+				verticalAlign: 'top',
+				y: 70,
+				floating: true,
+				backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
+				borderWidth: 1
+			},
+			series: data
+	});
 }
 
 function initialise(){
@@ -204,17 +186,8 @@ function initialise(){
 	fetchData();
 	data = jQuery.extend(true, [], original_data);
 	plotHsspCurve();
-	choices = jQuery.extend(true, [], data);
 	refreshDownloadableContent();
-	choiceContainer.html("Show:");
-	$.each(data, function(key, val) {
-        choiceContainer.append('<br/><input type="checkbox" name="' + key +
-                               '" checked="checked" id="id' + key + '">' +
-                               '<label for="id' + key + '">'
-                                + val.label + '</label>');
-    });
-    choiceContainer.find("input").click(reloadData);
-	plot = $.plot(placeholder, choices, options);
+	plotPoints();
 }
 
 /*
@@ -227,21 +200,16 @@ function reloadData(){
 	var hssp_curve;
 	// Find and store hssp curve
 	for(var i = data.length - 1; i >= 0; i--) {
-		if(data[i].label === "hssp curve") {
+		if(data[i].name === "hssp curve") {
 		   hssp_curve = data[i];
 		}
 	}
 	data = jQuery.extend(true, [], original_data);
-	choices = [];
 	data.push(hssp_curve);
-	choiceContainer.find("input:checked").each(function () {
-		var key = $(this).attr("name");
-		if (key && data[key])
-			choices.push(data[key]);
-	});
 	refreshDownloadableContent();
 	
-	plot = $.plot(placeholder, choices, options);
+	plotPoints();
+	//plot = $.plot(placeholder, choices, options);
 }
 function makeTextFile(text) {
     var data = new Blob([text], {type: 'text/plain'});
@@ -256,33 +224,33 @@ function refreshDownloadableContent(){
 	var aboveZeroData = "";
 	var prev_hit_above_id = "";
 	var prev_hit_below_id = "";
-	for(var i = choices.length - 1; i >= 0; i--) {
-		var values = choices[i].data;
-		if(choices[i].label != "hssp curve"){
-			aboveZeroData += "Iteration: " + choices[i].label + "\r\n";
-			belowZeroData += "Iteration: " + choices[i].label + "\r\n";
+	for(var i = data.length - 1; i >= 0; i--) {
+		if(data[i].name != "hssp curve"){
+			var values = data[i].data;
+			aboveZeroData += "Iteration: " + data[i].name + "\r\n";
+			belowZeroData += "Iteration: " + data[i].name + "\r\n";
 			
 			for(var j = values.length - 1; j >= 0; j--) {
 				// if we have a min and max hssp score (fetched from all the alignments), check for filters
-				var hssp_score = values[j][2];
+				var hssp_score = values[j].hssp_score;
 				if(hssp_score < from || hssp_score > to){
 					values.splice(j, 1);
 				}
 				else{
 					if(hssp_score>= (hssp_curve_distance*100)){
 						aboveZero++;
-						if(prev_hit_above_id != values[j][4]){
-							prev_hit_above_id = values[j][4];
-							aboveZeroData += "	Hit_ID: " + values[j][4] + "\r\n";
+						if(prev_hit_above_id != values[j].id){
+							prev_hit_above_id = values[j].id;
+							aboveZeroData += "	Hit_ID: " + values[j].id + "\r\n";
 						}
 						aboveZeroData += "		HSSP_SCORE: " + hssp_score  + "\r\n";
 						//aboveZeroData.push(values[j][3]);
 					}
 					else{
 						belowZero++;
-						if(prev_hit_below_id != values[j][4]){
-							prev_hit_below_id = values[j][4];
-							belowZeroData += "	Hit_ID: " + values[j][4] + "\r\n";
+						if(prev_hit_below_id != values[j].id){
+							prev_hit_below_id = values[j].id;
+							belowZeroData += "	Hit_ID: " + values[j].id + "\r\n";
 						}
 						belowZeroData += "		HSSP_SCORE: " + hssp_score  + "\r\n";
 						//belowZeroData.push(values[j][3]);
@@ -291,6 +259,43 @@ function refreshDownloadableContent(){
 			}
 		}
 	}
+	var pie = {
+            type: 'pie',
+			name: "number",
+            data: [{
+                name: '#elements above HSSP Curve',
+				id: 1,
+                y: aboveZero,
+                color: Highcharts.getOptions().colors[0]
+            }, {
+                name: '#elements below HSSP Curve',
+				id: 2,
+                y: belowZero,
+                color: Highcharts.getOptions().colors[1] // John's color
+            }],
+            center: ['10%', '-10%'],
+            size: 80,
+            showInLegend: false,
+			dataLabels :{
+				enabled: false
+			},
+			events:{
+				click: function (event){
+					if(event.point.id == 1){
+						var above = document.getElementById('above');
+						above.click();
+					}
+					else{
+						var below = document.getElementById('below');
+						below.click();
+					}
+				}
+			},
+			tooltip : {
+				pointFormat: '{point.y} elements<br><br><i>Click to download</i>'
+			}
+        };
+	data.push(pie);
 	var above = document.getElementById('above');
 	above.href = makeTextFile(aboveZeroData);
 	//above.href = makeTextFile(JSON.stringify(aboveZeroData));
@@ -310,7 +315,7 @@ function plotHsspCurve(){
 	var values = [];
 	
 	// TODO: change 0-600 based on the aligned sequences
-	for(L = 0; L <= max_sequence_alignment_length; L++){
+	for(L = 0; L <= max_sequence_alignment_length; L+=20){
 		var pair = [];
 
 		// Calculating PID based on L - number of residues aligned 
@@ -332,25 +337,20 @@ function plotHsspCurve(){
 			pair.push(PID*100);
 		}
 		
-		if(!showAboveOrEqualTo100 && PID > 1.0){
-			
-		} else {
+		if(!PID < 1.0){
 			values.push(pair);		
 		}
 	}
 	var result = {};
-	result.label = "hssp curve";
+	result.name = "hssp curve";
 	result.data = values;
-	result.animator = animator;
-	result['lines'] = { show: true };
-	result['points'] = { show: false };	
-	
-	// Remove old hssp curve if exists
-	for(var i = data.length - 1; i >= 0; i--) {
-		if(data[i].label === "hssp curve") {
-		   data.splice(i, 1);
-		}
-	}
+	result.lineWidth = 2,
+    result.marker = {radius: 3};
+	result.pointStart = 0;
+	result.tooltip = {
+		headerFormat: '<b>Hssp Curve Distance:</b><br>',
+		pointFormat: '' + (hssp_curve_distance*100)
+	};
 	
 	data.push(result);
 }
@@ -406,13 +406,13 @@ function fetchIteration(iteration, id){
 		if($.isArray(hsp)) {
 			$.each(hsp, function(key, hspObject) {
 				var pair = fetchHsspPair(iterationHit, hspObject);
-				if(pair.length > 0){
+				if(!jQuery.isEmptyObject(pair)){
 					values.push(pair);
 				}
 			});
 		} else {
 			var pair = fetchHsspPair(iterationHit, hsp);
-			if(pair.length > 0){
+			if(!jQuery.isEmptyObject(pair)){
 				values.push(pair);
 			}		
 		}
@@ -424,13 +424,13 @@ function fetchIteration(iteration, id){
 		if($.isArray(hsp)) {
 			$.each(hsp, function(key, hspObject) {
 				var pair = fetchHsspPair(hits, hspObject);
-				if(pair.length > 0){
+				if(!jQuery.isEmptyObject(pair)){
 					values.push(pair);
 				}
 			});
 		} else {
 			var pair = fetchHsspPair(hits, hsp);
-			if(pair.length > 0){
+			if(!jQuery.isEmptyObject(pair)){
 				values.push(pair);
 			}
 		}
@@ -444,12 +444,32 @@ function fetchIteration(iteration, id){
 		to = $("#to").val(max_hssp_score);
 	}
 	
-	options.xaxis.max = max_sequence_alignment_length;
-	options.xaxis.tickSize = max_sequence_alignment_length/10;
-	
 	var result = {};
-	result.label = "Iteration " + id;
+	result.name = "Iteration " + id;
 	result.data = values;
+	result.type = "scatter";
+	result.marker = {
+		radius: 2,
+		states: {
+			hover: {
+				enabled: true,
+				lineColor: 'rgb(100,100,100)'
+			}
+		}
+	};
+	result.satates = {
+		hover: {
+			marker: {
+				enabled: false
+			}
+		}
+	};
+	result.tooltip = {
+		headerFormat: '<b>Item with values:</b><br>',
+		pointFormat: '% sequence identity : {point.x}<br>number of aligned residues: {point.y}<br>HSSP score:{point.hssp_score:.2f}',
+		valueDecimals: 2
+	};
+	result.pointStart = 0;
 	result.animator = animator;
 	original_data.push(result);
 }
@@ -482,27 +502,19 @@ function fetchHsspPair(iterationHit, hspObject){
 	
 	var percentage = number_aligned/length;
 
-	var pair = [];	
-	if(percentage >= 1 && !showAboveOrEqualTo100){	
+	var pair = {};
+	if(percentage >= 1){
 		return pair;
 	}
-	
-	/*if(hssp_score < min_hssp_score){
-		min_hssp_score = hssp_score;
-	}
-	if(hssp_score > max_hssp_score){
-		max_hssp_score = hssp_score;
-	}*/
 	if(number_aligned > max_sequence_alignment_length){
 		max_sequence_alignment_length = number_aligned;
 	}
 	
 	// We form number_aligned in the x axis and percentage in y axis
-	pair.push(number_aligned);
-	pair.push(percentage*100);
-	pair.push(hssp_score);
-	pair.push(hspObject);
-	pair.push(id);
+	pair.x = number_aligned;
+	pair.y = percentage*100;
+	pair.hssp_score = hssp_score;
+	pair.id = id;
 	return pair;
 }
 
@@ -568,25 +580,9 @@ $('#hssp_curve_distance').change(function() {
 	
 	data = jQuery.extend(true, [], original_data);
 	plotHsspCurve();
-	choices = [];
-	choiceContainer.find("input:checked").each(function () {
-		var key = $(this).attr("name");
-		if (key && data[key])
-			choices.push(data[key]);
-	});
 	refreshDownloadableContent();
-	plot = $.plot(placeholder, choices, options);
+	plotPoints();
 });
 
-/*
-	description:
-	Click Handler for the check button. There are some extreme cases in the sample blast input where the percentages would go above 100,
-	as a sort of filter we are setting here the boolean which then will disregard these extreme cases.
-
-$("#aboveOrEqualTo100").change(function() {
-	showAboveOrEqualTo100 = $(this).is(":checked");
-	
-	refreshEntireVisualization(false);
-});*/
 
 </script>
