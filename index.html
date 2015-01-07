@@ -24,28 +24,19 @@
 		}
 		
 		#placeholder {
-			margin-top: 50px;
+			margin-top: 20px;
 			width:800px;
 			height:50%;
 		}
 		
 		#input_wrapper {
-			margin-top: 50px;
-			margin-left: 25px;
+			margin-top: 0px;
+			margin-left: 0px;
 		}
 		
 		.filter_wrapper {
 			padding:10px;
 			background-color: #fafafa;
-		}
-		
-		#tooltip{
-			position: absolute;
-			display: none;
-			border: 1px solid #fdd;
-			padding: 2px;
-			background-color: #fee;
-			opacity: 0.80;
 		}
 	</style>
 	<link href="libs/range/jquery.range.css" rel="stylesheet">
@@ -65,16 +56,22 @@
   	<div id="container">
 		<h1>HSSP CURVE</h1>
 		<div id="description">
-			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which may contain bad data (test it with your own). The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.</br>
-			</br>Features:
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to filter based on hssp scores
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to zoom by selecting a part of the graph
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download a screen shot of the graph or print it
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download all the elements that are below or above the hssp ruve in .txt format (hint: check out the pie chart)
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to show/hide different data from the legend of the graph (hint: click the legend items and see what happens)
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
+			Briefly explaining what this is and what for.
 		</div>
 		</br>
+		
+		<div id="input_wrapper">
+			Put the content of the blast output in XML here:
+			<textarea id="xmlArea" rows="1" style="width:100%"></textarea> 
+			 <input type="button" value="Clear" onclick="javascript:eraseText();"> 
+			<button id="show_graph" id="calculate" >Extract Graph</button>			 
+			</br></br>
+			<p style="display:none">
+			Blast Output automatically parsed into JSON:			
+			<textarea id="jsonArea" rows="8"></textarea> 
+			</br></br> 
+			</p>
+		</div>
 		
 		<div class="filter_wrapper">
 			<h3>Filters</h3>
@@ -106,22 +103,17 @@
 			</br>
 			<a href="javascript:void(0)" download="above.txt" id="above">Download #elements above the hssp curve</a>
 		</p>
-		<!--<p id="choices">Show:</p>
-		<div id="tooltip"></div>-->
-		
-		<div id="input_wrapper">
-			Put the content of the blast output in XML here:
-			<textarea id="xmlArea" rows="1" style="width:100%"></textarea> 
-			 <input type="button" value="Clear" onclick="javascript:eraseText();"> 
-			<button id="show_graph" id="calculate" >Extract Graph</button>			 
-			</br></br>
-			<p style="display:none">
-			Blast Output automatically parsed into JSON:			
-			<textarea id="jsonArea" rows="8"></textarea> 
-			</br></br> 
-			</p>
+		<br/>		<br/>		<br/>		<br/>
+		<div id="more_information">
+			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which may contain bad data (test it with your own). The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.</br>
+			</br>Features:
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to filter based on hssp scores
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to zoom by selecting a part of the graph
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download a screen shot of the graph or print it
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download all the elements that are below or above the hssp ruve in .txt format (hint: check out the pie chart)
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to show/hide different data from the legend of the graph (hint: click the legend items and see what happens)
+			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
 
-			</br></br></br></br></br></br></br></br></br></br>			
 		</div>
 	</div>
 </body>
