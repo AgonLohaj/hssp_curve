@@ -226,6 +226,24 @@ function refreshDownloadableContent(){
 	var aboveZeroData = "";
 	var prev_hit_above_id = "";
 	var prev_hit_below_id = "";
+	var headerInfo =    "# HIT - Name of a BLAST Hit\r\n" +
+						"# IDE - Percent identity in alignment\r\n" +
+						"# LALI - Length of alignment, excluding gaps\r\n" +
+						"# HSSP - HSSP-Distance using formula from B. Rost's HSSP-Paper 1999\r\n" +
+						"###########################################################################\r\n" +
+						"# Parameters:\r\n" +
+						"# HSSP Curve distance:" + hssp_curve_distance "\r\n" +
+						"# Minimum HSSP Score:" + from "\r\n" +
+						"# Maximum HSSP Score:" + to "\r\n" +
+						"###########################################################################\r\n";
+						
+	aboveZeroData +=    "###########################################################################\r\n" +
+						"# Pairs of Proteins with hssp score greater then the hssp curve\r\n" +
+						headerInfo;
+	belowZeroData +=    "###########################################################################\r\n" +
+						"# Pairs of Proteins with hssp score lower then the hssp curve\r\n" +
+						headerInfo;
+	
 	for(var i = data.length - 1; i >= 0; i--) {
 		if(data[i].name != "hssp curve"){
 			var values = data[i].data;
@@ -403,48 +421,22 @@ function fetchIteration(iteration, id){
 	var hits = iteration.Iteration_hits.Hit;
 	
 	var values = [];
-	
 	if($.isArray(hits)){
 		$.each(hits, function(key, iterationHit) {
 	    //display the key and value pair
-		var hsp = iterationHit.Hit_hsps.Hsp;
-
-		// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
-		if($.isArray(hsp)) {
-			$.each(hsp, function(key, hspObject) {
-				var pair = fetchHsspPair(iterationHit, hspObject);
-				if(!jQuery.isEmptyObject(pair)){
-					values.push(pair);
-				}
-			});
-		} else {
-			var pair = fetchHsspPair(iterationHit, hsp);
-			if(!jQuery.isEmptyObject(pair)){
-				values.push(pair);
-			}		
-		}
-	});
+			var hsp = iterationHit.Hit_hsps.Hsp;
+			var optimal_pair = fetchPairFromHsp(iterationHit, hsp);
+			if(!jQuery.isEmptyObject(optimal_pair)){
+				values.push(optimal_pair);
+			}	
+		});
 	}else{
 		var hsp = hits.Hit_hsps.Hsp;
-
-		// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
-		if($.isArray(hsp)) {
-			$.each(hsp, function(key, hspObject) {
-				var pair = fetchHsspPair(hits, hspObject);
-				if(!jQuery.isEmptyObject(pair)){
-					values.push(pair);
-				}
-			});
-		} else {
-			var pair = fetchHsspPair(hits, hsp);
-			if(!jQuery.isEmptyObject(pair)){
-				values.push(pair);
-			}
-		}
+		var optimal_pair = fetchPairFromHsp(hits, hsp);
+		if(!jQuery.isEmptyObject(optimal_pair)){
+			values.push(optimal_pair);
+		}	
 	}
-	
-	
-	
 	// save the max and min to "to" and "from"
 	if(from == null && to == null){	
 		from = $("#from").val(min_hssp_score);	
@@ -453,6 +445,7 @@ function fetchIteration(iteration, id){
 	
 	var result = {};
 	result.name = "Iteration " + id;
+	console.log("values length:"  + values.length);
 	result.data = values;
 	result.type = "scatter";
 	result.marker = {
@@ -473,12 +466,39 @@ function fetchIteration(iteration, id){
 	};
 	result.tooltip = {
 		headerFormat: '<b>Item with values:</b><br>',
-		pointFormat: '% sequence identity : {point.x}<br>number of aligned residues: {point.y}<br>HSSP score:{point.hssp_score:.2f}',
+		pointFormat: 'HSSP score:{point.hssp_score:.2f}<br>% sequence identity : {point.y}<br>number of aligned residues: {point.x}',
 		valueDecimals: 2
 	};
 	result.pointStart = 0;
 	result.animator = animator;
 	original_data.push(result);
+}
+
+function fetchPairFromHsp(hit, hsp){
+	// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
+	if($.isArray(hsp)) {
+		var hsps = [];
+		// If there are multiple hsps than select the optimal one
+		$.each(hsp, function(key, hspObject) {
+			var pair = fetchHsspPair(hit, hspObject);
+			if(!jQuery.isEmptyObject(pair)){
+				hsps.push(pair);
+			}
+		});
+		var optimal_hsp;
+		for(var i = 0; i < hsps.length; i++) {
+			if(jQuery.isEmptyObject(optimal_hsp)){
+				optimal_hsp = hsps[i];
+				continue;
+			}
+			if(hsps[i].hssp_score > optimal_hsp.hssp_score) {
+			   optimal_hsp = hsps[i];
+			}
+		}
+		return optimal_hsp;
+	} else {
+		return fetchHsspPair(hit, hsp);
+	}
 }
 
 /*
@@ -510,7 +530,7 @@ function fetchHsspPair(iterationHit, hspObject){
 	var percentage = number_aligned/length;
 
 	var pair = {};
-	if(percentage >= 1){
+	if(percentage > 1){
 		return pair;
 	}
 	if(number_aligned > max_sequence_alignment_length){
