@@ -171,6 +171,9 @@ function plotPoints(){
 				backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
 				borderWidth: 1
 			},
+			tooltip: {
+				hideDelay: 100
+			},
 // 			tooltip: {
 // 				 formatter: function () {
 // 					if (this.series.name == "hssp curve") {
@@ -472,8 +475,8 @@ function fetchIteration(iteration, id){
 		}
 	};
 	result.tooltip = {
-		headerFormat: '<b>Item with values:</b><br>',
-		pointFormat: '% sequence identity : {point.x}<br>number of aligned residues: {point.y}<br>HSSP score:{point.hssp_score:.2f}',
+		headerFormat: '',
+		pointFormat: '<b>HSSP score: {point.hssp_score:.2f}</b><br/>% sequence identity: {point.x}<br/>number of aligned residues: {point.y}',
 		valueDecimals: 2
 	};
 	result.pointStart = 0;
