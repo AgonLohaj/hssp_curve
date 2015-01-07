@@ -179,6 +179,13 @@ function plotPoints(){
 				backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
 				borderWidth: 1
 			},
+// 			tooltip: {
+// 				 formatter: function () {
+// 					if (this.series.name == "hssp curve") {
+// 						return false;
+// 					}
+// 				}
+// 			},
 			series: data
 	});
 }
@@ -188,6 +195,7 @@ function initialise(){
 	fetchData();
 	data = jQuery.extend(true, [], original_data);
 	plotHsspCurve();
+	
 	refreshDownloadableContent();
 	plotPoints();
 }
@@ -347,12 +355,17 @@ function plotHsspCurve(){
 	result.name = "hssp curve";
 	result.data = values;
 	result.lineWidth = 2,
-    result.marker = {radius: 3};
+	result.marker = {radius: 0};
 	result.pointStart = 0;
 	result.tooltip = {
-		headerFormat: '<b>Hssp Curve Distance:</b><br>',
-		pointFormat: '' + (hssp_curve_distance*100)
+		pointFormat: false
 	};
+
+// 	result.tooltip = {
+// 		headerFormat: '<b>Hssp Curve Distance:</b><br>',
+// 		pointFormat: '' + (hssp_curve_distance*100)
+// 	};
+
 	
 	data.push(result);
 }
