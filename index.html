@@ -273,12 +273,12 @@ function refreshDownloadableContent(){
             type: 'pie',
 			name: "number",
             data: [{
-                name: '#elements above HSSP Curve',
+                name: '# of protein pairs above HSSP Curve',
 				id: 1,
                 y: aboveZero,
                 color: Highcharts.getOptions().colors[0]
             }, {
-                name: '#elements below HSSP Curve',
+                name: '# of proteins pairs below HSSP Curve',
 				id: 2,
                 y: belowZero,
                 color: Highcharts.getOptions().colors[1] // John's color
@@ -302,7 +302,7 @@ function refreshDownloadableContent(){
 				}
 			},
 			tooltip : {
-				pointFormat: '{point.y} elements<br><br><i>Click to download</i>'
+				pointFormat: '{point.y} pairs of proteins<br><br><i>Click to download</i>'
 			}
         };
 	data.push(pie);
@@ -313,8 +313,8 @@ function refreshDownloadableContent(){
 	//below.href = makeTextFile(JSON.stringify(belowZeroData));
 	below.href = makeTextFile(belowZeroData);
 	
-	$( "#below" ).html("Download " + belowZero + " elements below the hssp curve");
-	$( "#above" ).html("Download " + aboveZero + " elements above the hssp curve");
+	$( "#below" ).html("Download " + belowZero + " pairs of proteins below the hssp curve");
+	$( "#above" ).html("Download " + aboveZero + " pairs of proteins above the hssp curve");
 }
 
 /*
