@@ -84,7 +84,7 @@
 -->	  		
 	  		<div class="filter">
 			Filter based on HSSP score:<br/>
-			<input type="text" id="from" value="1"></input> - <input type="text" id="to" value="80.5"></input>
+			<input type="text" id="from" value="-90"></input> - <input type="text" id="to" value="80.5"></input>
 			<button id="filter_graph">Filter</button>		
 			</div>
 	  		<br/>
@@ -187,6 +187,10 @@ function plotPoints(){
 
 function initialise(){
 	max_sequence_alignment_length = 0;
+	$("#from").val(min_hssp_score);
+	$("#to").val(max_hssp_score);
+	from = min_hssp_score;	
+	to = max_hssp_score;
 	fetchData();
 	data = jQuery.extend(true, [], original_data);
 	plotHsspCurve();
@@ -229,6 +233,7 @@ function refreshDownloadableContent(){
 	var aboveZeroData = "";
 	var prev_hit_above_id = "";
 	var prev_hit_below_id = "";
+	console.log(from + ".." + to);
 	var headerInfo =    "# HIT - Name of a BLAST Hit\r\n" +
 						"# IDE - Percent identity in alignment\r\n" +
 						"# LALI - Length of alignment, excluding gaps\r\n" +
@@ -237,8 +242,7 @@ function refreshDownloadableContent(){
 						"# Parameters:\r\n" +
 						"# HSSP Curve distance:" + hssp_curve_distance + "\r\n" +
 						"# Minimum HSSP Score:" + from + "\r\n" +
-						"# Maximum HSSP Score:" + to + "\r\n" +
-						"###########################################################################\r\n";
+						"# Maximum HSSP Score:" + to + "\r\n";
 						
 	aboveZeroData +=    "###########################################################################\r\n" +
 						"# Pairs of Proteins with hssp score greater then the hssp curve\r\n" +
@@ -250,8 +254,14 @@ function refreshDownloadableContent(){
 	for(var i = data.length - 1; i >= 0; i--) {
 		if(data[i].name != "hssp curve"){
 			var values = data[i].data;
-			aboveZeroData += "Iteration: " + data[i].name + "\r\n";
-			belowZeroData += "Iteration: " + data[i].name + "\r\n";
+			aboveZeroData +="###########################################################################\r\n" + 
+							"#Q: " + data[i].iteration_name + "\r\n" +
+							"###########################################################################\r\n" +
+							"HIT                                        IDE         LALI            HSSP\r\n";
+			belowZeroData +="###########################################################################\r\n" + 
+							"#Q: " + data[i].iteration_name + "\r\n" +
+							"###########################################################################\r\n" +
+							"HIT                                        IDE         LALI            HSSP\r\n";
 			
 			for(var j = values.length - 1; j >= 0; j--) {
 				// if we have a min and max hssp score (fetched from all the alignments), check for filters
@@ -260,22 +270,28 @@ function refreshDownloadableContent(){
 					values.splice(j, 1);
 				}
 				else{
+					var ID = values[j].id;
+					while(ID.length < 43){
+						ID += " ";
+					}
+					var percentage = values[j].y.toFixed(2);  + "";
+					while(percentage.length < 12){
+						percentage += " ";
+					}
+					
+					var alignment_length = values[j].x.toFixed(2);  + "";
+					while(alignment_length.length < 16){
+						alignment_length += " ";
+					}
+					var newLine = ID + percentage + alignment_length + hssp_score.toFixed(2) + "\r\n";
 					if(hssp_score>= (hssp_curve_distance*100)){
 						aboveZero++;
-						if(prev_hit_above_id != values[j].id){
-							prev_hit_above_id = values[j].id;
-							aboveZeroData += "	Hit_ID: " + values[j].id + "\r\n";
-						}
-						aboveZeroData += "		HSSP_SCORE: " + hssp_score  + "\r\n";
+						aboveZeroData += newLine;
 						//aboveZeroData.push(values[j][3]);
 					}
 					else{
 						belowZero++;
-						if(prev_hit_below_id != values[j].id){
-							prev_hit_below_id = values[j].id;
-							belowZeroData += "	Hit_ID: " + values[j].id + "\r\n";
-						}
-						belowZeroData += "		HSSP_SCORE: " + hssp_score  + "\r\n";
+						belowZeroData += newLine;
 						//belowZeroData.push(values[j][3]);
 					}
 				}
@@ -440,15 +456,10 @@ function fetchIteration(iteration, id){
 			values.push(optimal_pair);
 		}	
 	}
-	// save the max and min to "to" and "from"
-	if(from == null && to == null){	
-		from = $("#from").val(min_hssp_score);	
-		to = $("#to").val(max_hssp_score);
-	}
 	
 	var result = {};
 	result.name = "Iteration " + id;
-	console.log("values length:"  + values.length);
+	result.iteration_name = label;
 	result.data = values;
 	result.type = "scatter";
 	result.marker = {
