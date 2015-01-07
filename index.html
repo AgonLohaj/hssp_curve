@@ -150,6 +150,7 @@ function plotPoints(){
 					enabled: true,
 					text: 'number of aligned residues'
 				},
+				floor :0,				
 				showLastLabel: true
 			},
 			yAxis: {
@@ -172,15 +173,17 @@ function plotPoints(){
 				borderWidth: 1
 			},
 			tooltip: {
-				hideDelay: 100
+				hideDelay: 100,
+				formatter: function() {
+					if (this.series.name == "hssp curve") {
+						return false;
+					} else if(this.series.name == "number") {
+						return this.point.y + ' pairs of proteins<br><br><i>Click to download</i>';
+					} else {						
+						return '<b>HSSP score: '+this.point.hssp_score.toFixed(2)+'</b><br/>% sequence identity: '+this.point.y.toFixed(2)+'<br/>number of aligned residues: '+this.point.x.toFixed(2);
+					}
+				}
 			},
-// 			tooltip: {
-// 				 formatter: function () {
-// 					if (this.series.name == "hssp curve") {
-// 						return false;
-// 					}
-// 				}
-// 			},
 			series: data
 	});
 }
@@ -329,9 +332,6 @@ function refreshDownloadableContent(){
 						below.click();
 					}
 				}
-			},
-			tooltip : {
-				pointFormat: '{point.y} pairs of proteins<br><br><i>Click to download</i>'
 			}
         };
 	data.push(pie);
@@ -386,15 +386,6 @@ function plotHsspCurve(){
 	result.lineWidth = 2,
 	result.marker = {radius: 0};
 	result.pointStart = 0;
-	result.tooltip = {
-		pointFormat: false
-	};
-
-// 	result.tooltip = {
-// 		headerFormat: '<b>Hssp Curve Distance:</b><br>',
-// 		pointFormat: '' + (hssp_curve_distance*100)
-// 	};
-
 	
 	data.push(result);
 }
@@ -477,11 +468,6 @@ function fetchIteration(iteration, id){
 				enabled: false
 			}
 		}
-	};
-	result.tooltip = {
-		headerFormat: '',
-		pointFormat: '<b>HSSP score: {point.hssp_score:.2f}</b><br/>% sequence identity: {point.y}<br/>number of aligned residues: {point.x}',
-		valueDecimals: 2
 	};
 	result.pointStart = 0;
 	result.animator = animator;
