@@ -9,6 +9,10 @@
 	<title>HSSP Curve</title>
 
 	<style type="text/css" >
+		body {
+			font-family: Verdana !important;
+		}
+		
 		.input-group{
 			width:100%;
 		}
@@ -52,6 +56,12 @@
 			margin-left: 0px;
 		    border-radius: 5px;						
 			border: 1px solid #3498db;
+		}
+		
+		#more_information {
+			padding: 20px 10px 20px 10px;		
+		    border-radius: 5px;						
+			border: 1px solid #3498db;		
 		}
 		
 		#buttonUpload {
@@ -124,7 +134,7 @@
   	<div id="container">
 		<h1>HSSP CURVE</h1>
 		<div id="description">
-			Briefly explaining what this is and what for.
+			Visualize the HSSP curve and impose the BLAST-derived sequence alignments and allow the user to dynamically filter and export the data shown on the graph for better insights.
 		</div>
 		<br/>
 		
@@ -244,16 +254,16 @@
 		</p>
 		<br/>		<br/>		<br/>		<br/>
 		<div id="more_information">
-			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which may contain bad data (test it with your own). The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.<br/>
+			The current implementation works with Blast output version BLASTP 2.2.29+. The input loaded here by default come from a sample output which may contain bad data so, for better understanding use your own alignment result. For generating the alignment output, you can use <a href="http://blast.ncbi.nlm.nih.gov/Blast.cgi">BLAST</a>.<br/>The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.<br/>
 			<br/>Features:
 			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to filter based on hssp scores
 			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to zoom by selecting a part of the graph
-			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download a screen shot of the graph or print it
-			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download all the elements that are below or above the hssp ruve in .txt format (hint: check out the pie chart)
-			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to show/hide different data from the legend of the graph (hint: click the legend items and see what happens)
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download a screenshot of the graph or print it
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download all the elements that are below or above the hssp curve in .txt format (hint: check out the pie chart)
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to show/hide different data from the legend of the graph
 			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
-
 		</div>
+		<br/><br/><br/><br/><br/><br/>
 	</div>
 
 <script type="text/javascript">
