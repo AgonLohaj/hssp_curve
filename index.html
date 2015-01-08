@@ -26,7 +26,7 @@
 		#placeholder {
 			margin-top: 20px;
 			width:800px;
-			height:50%;
+			height:60%;
 		}
 		
 		#input_wrapper {
@@ -161,13 +161,15 @@ function plotPoints(){
 				ceiling :100
 			},
 			chart: {
-				zoomType: 'xy'
+				zoomType: 'xy',
+				spacingTop: 60
 			},
 			legend: {
-				layout: 'vertical',
-				align: 'center',
+				layout: 'vertical',	
+				align: 'right',			
 				verticalAlign: 'top',
-				y: 70,
+				y: -10,
+				x: -35,
 				floating: true,
 				backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF',
 				borderWidth: 1
@@ -184,6 +186,7 @@ function plotPoints(){
 					}
 				}
 			},
+			
 			series: data
 	});
 }
@@ -315,8 +318,8 @@ function refreshDownloadableContent(){
                 y: belowZero,
                 color: Highcharts.getOptions().colors[1] // John's color
             }],
-            center: ['10%', '-10%'],
-            size: 80,
+            center: [10, '-20%'],
+            size: 50,
             showInLegend: false,
 			dataLabels :{
 				enabled: false
