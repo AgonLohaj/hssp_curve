@@ -116,49 +116,6 @@
 		
 	<script src="libs/highchart/highcharts.js"></script>
 	<script src="libs/highchart/modules/exporting.js"></script>
-	
-	<script type="text/javascript" src="libs/ajaxfileupload/ajaxfileupload.js"></script>
-
-	<script type="text/javascript">
-
-	jQuery.extend({
-		handleError: function( s, xhr, status, e ) {
-			// If a local callback was specified, fire it
-			if ( s.error )
-				s.error( xhr, status, e );
-			// If we have some XML response text (e.g. from an AJAX call) then log it in the console
-			else if(xhr.responseText)
-				console.log(xhr.responseText);
-		}
-	});
-
-	function uploadFile()
-	{
-		$.ajaxFileUpload
-		(
-			{
-				url:'doajaxfileupload.php',
-				secureuri:true,
-				method: 'GET',
-				fileElementId:'fileToUpload',
-				dataType: 'xml',
-				success: function (data, status)
-				{
-					var xml_string = xmlToString(data);
-					$("#xmlArea").val(xml_string);
-					initialise();
-				},
-				error: function (data, status, e)
-				{
-					alert(e);
-				}
-			}
-		)
-		
-		return false;
-
-	}
-	</script>
 </head>
 <body>
 
@@ -180,13 +137,6 @@
 							<input id="fileToUpload" class="filestyle" type="file" name="fileToUpload">
 						</div>
 					</div>	 
-					<div class="row">
-						<div class="input-group">
-							<button class="button form-control" id="buttonUpload" onclick="return uploadFile();">Upload</button>
-						</div>
-					</div>	 	
-					<img id="loading" src="./hssp_curve_files/loading.gif" style="display:none;">
-
 				</div>
 				
 				<div class="col-sm-1 nopadding">				
@@ -320,6 +270,21 @@ var original_data = [];
 var data = [];
 var placeholder = $("#placeholder");
 var graph;
+
+
+	
+	
+document.getElementById('fileToUpload').onchange = function(){
+  var file = this.files[0];
+  var reader = new FileReader();
+  reader.onload = function(progressEvent){
+	// Entire file
+	$("#xmlArea").val(this.result);
+	initialise();
+  };
+  reader.readAsText(file);
+};
+
 function plotPoints(){
 	placeholder.highcharts({
 			title: {
