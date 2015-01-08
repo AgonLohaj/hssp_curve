@@ -12,14 +12,16 @@
 			height:800px;
 		}
 		
-		#fromTxt {
+		#from {
 			display: block;
-			width:200px;
+			width:30px;
+			margin:8px 5px 8px 5px;			
 			float:left;
 		}
-		#toTxt {
+		#to {
 			display: block;
-			width:200px;
+			width:30px;
+			margin:8px 5px 8px 5px;			
 			float:left;
 		}
 		
@@ -34,15 +36,35 @@
 			margin-left: 0px;
 		}
 		
+		#slider-range {
+			float:left;
+			margin:10px;
+			width: 30%;
+		}
+		
+		.clear {
+			clear: both;
+		}
+		
 		.filter_wrapper {
 			padding:10px;
 			background-color: #fafafa;
 		}
 	</style>
+	<script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>	
 	<link href="libs/range/jquery.range.css" rel="stylesheet">
 	<meta charset="utf-8">
 	<!-- xml2json is a helper to convert the xml format to json -->
-	<script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>
+	
+<!-- 
+	 jQuery UI 
+	  - Using for the range selector
+ -->
+	<link rel="stylesheet" href="libs/jquery-ui/jquery-ui.min.css">
+	<script src="libs/jquery-ui/jquery-ui.min.js"></script>	
+
+	
+
 	<script language="javascript" type="text/javascript" src="xml2json.js"></script>
 	
 	<script src="libs/highchart/highcharts.js"></script>
@@ -130,9 +152,9 @@
 -->	  		
 	  		<div class="filter">
 			Filter based on HSSP score:<br/>
-			<input type="text" id="from" value="-90"></input> - <input type="text" id="to" value="80.5"></input>
-			<button id="filter_graph">Filter</button>		
+			<input type="text" id="from" value="-90"></input><div id="slider-range"></div><input type="text" id="to" value="80.5"></input>
 			</div>
+			<div class="clear"></div>
 	  		<br/>
 	  		<div class="filter">
 			HSSP-curve value:
@@ -641,11 +663,17 @@ $("#show_graph").click(function(){
 	description:
 	Click Handler for the Filter button which filters the graph based on the range of values (from-to)
 */
-$("#filter_graph").click(function() {
+// $("#filter_graph").click(function() {
+// 	from = $("#from").val();
+// 	to = $("#to").val();
+// 	reloadData();
+// });
+
+function filter_graph(){
 	from = $("#from").val();
 	to = $("#to").val();
 	reloadData();
-});
+}
 
 /*
 	description:
@@ -671,6 +699,37 @@ $('#hssp_curve_distance').change(function() {
 	plotPoints();
 });
 
+	$( "#slider-range" ).slider({
+	  range: true,
+	  min: -90,
+	  max: 80.5,
+	  values: [ -90, 80.5 ],
+	  slide: function( event, ui ) {
+	  		$("#from").val(ui.values[ 0 ]);
+	  		$("#to").val(ui.values[ 1 ]);	  		
+	  		filter_graph();
+	  }
+	});
+	
+$('#to').keyup(function () { 
+
+	var to = $("#to").val();
+	if(to > 80.5){
+		$("#to").val(80.5);
+	}
+	filter_graph(); 
+	
+});
+$('#from').keyup(function () { 
+
+	var from = $("#from").val();
+	if(from < -90){
+		$("#from").val(-90);
+	}
+	filter_graph(); 
+});	
+
+	  
 function eraseText(){
 	$("#xmlArea").val("");	
 }
