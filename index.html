@@ -376,9 +376,9 @@ function initialise(){
 	to = max_hssp_score;
 	fetchData();
 	data = jQuery.extend(true, [], original_data);
-	plotHsspCurve();
+	plotHsspCurve(false);
 	
-	refreshDownloadableContent();
+	refreshDownloadableContent(false);
 	plotPoints();
 }
 
@@ -398,10 +398,11 @@ function reloadData(){
 	}
 	data = jQuery.extend(true, [], original_data);
 	data.push(hssp_curve);
-	refreshDownloadableContent();
+	refreshDownloadableContent(true);
 	for(var i =0; i< data.length; i++){
-		console.log(graph.series[i].name + "..." + data[i].name);
-		graph.series[i].update(data[i]);
+		if(graph.series[i].name != "hssp curve" && graph.series[i].name != "number"){
+			graph.series[i].setData(data[i].data);
+		}
 	}
 	//plot = $.plot(placeholder, choices, options);
 }
@@ -414,7 +415,7 @@ function makeTextFile(text) {
 var aboveUrl;
 var belowUrl;
 
-function refreshDownloadableContent(){
+function refreshDownloadableContent(refreshGraph){
 	var belowZero = 0;
 	var aboveZero = 0;
 	var belowZeroData = "";
@@ -493,25 +494,26 @@ function refreshDownloadableContent(){
 			}
 		}
 	}
-	var pie = {
-            type: 'pie',
-			name: "number",
-            data: [{
-                name: '# of protein pairs above HSSP Curve',
+	var pie_data =[{
+                name: '# above HSSP Curve',
 				id: 1,
                 y: aboveZero,
                 color: Highcharts.getOptions().colors[0]
             }, {
-                name: '# of proteins pairs below HSSP Curve',
+                name: '# below HSSP Curve',
 				id: 2,
                 y: belowZero,
                 color: Highcharts.getOptions().colors[1] // John's color
-            }],
+            }];
+	var pie = {
+            type: 'pie',
+			name: "number",
+            data: pie_data,
             center: [10, '-20%'],
             size: 50,
             showInLegend: false,
 			dataLabels :{
-				enabled: false
+				enabled: true
 			},
 			events:{
 				click: function (event){
@@ -527,6 +529,13 @@ function refreshDownloadableContent(){
 			}
         };
 	data.push(pie);
+	if(refreshGraph){
+		for(var i =0; i< graph.series.length; i++){
+			if(graph.series[i].name == pie.name){
+				graph.series[i].setData(pie_data);
+			}
+		}
+	}
 	var above = document.getElementById('above');
 	
 	//Revoke previous urls
@@ -550,7 +559,7 @@ function refreshDownloadableContent(){
 	description:
 	This function plots the hsspcurve over the data extracted from the input.
 */
-function plotHsspCurve(){
+function plotHsspCurve(refreshGraph){
 	var values = [];
 	
 	// TODO: change 0-600 based on the aligned sequences
@@ -587,6 +596,13 @@ function plotHsspCurve(){
 	result.marker = {radius: 0};
 	result.pointStart = 0;
 	data.push(result);
+	if(refreshGraph){
+		for(var i =0; i< graph.series.length; i++){
+			if(graph.series[i].name == result.name){
+				graph.series[i].setData(values);
+			}
+		}
+	}
 }
 
 // xml to string helper method
@@ -810,11 +826,11 @@ $('#hssp_curve_distance').change(function() {
 	hssp_curve_distance = $(this).val()/100;
 	
 	data = jQuery.extend(true, [], original_data);
-	plotHsspCurve();
-	refreshDownloadableContent();
-	for(var i =0; i< data.length; i++){
-		graph.series[i].update(data[i]);
-	}
+	plotHsspCurve(true);
+	refreshDownloadableContent(true);
+	//for(var i =0; i< data.length; i++){
+		//graph.series[i].update(data[i]);
+	//}
 });
 
 $(":file").filestyle();
