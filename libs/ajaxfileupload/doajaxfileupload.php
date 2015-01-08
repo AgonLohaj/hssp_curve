@@ -38,25 +38,14 @@
 	{
 		$error = 'No file was uploaded..';
 	}
+	else if('text/xml' != $_FILES[$fileElementName]['type']){
+		$error = 'Only xml files are allowed';
+	}
 	else 
 	{
-	
-			/*
-			$file = fopen($_FILES[$fileElementName]['tmp_name'], "r");
-			
-			while(!feof($file)){
-				echo fgets($file);
-				# do same stuff with the $line
-			}
-			fclose($file);*/
-			$file = new SplFileObject($_FILES[$fileElementName]['tmp_name']);
-			while (!$file->eof()) {
-				echo $file->fgets();
-			}
-			$file = null;
-			//readfile($_FILES[$fileElementName]['tmp_name']);   
-
-
-		//echo file_get_contents($_FILES[$fileElementName]['tmp_name']);	
+		header('Content-type: text/xml');
+		echo file_get_contents($_FILES[$fileElementName]['tmp_name']);
+		@unlink($_FILES['fileToUpload']);		
 	}
+	echo $error;
 ?>

@@ -82,22 +82,19 @@
 
 	function uploadFile()
 	{
-		$("#loading").ajaxStart(function(){
-			$(this).show();
-		}).ajaxComplete(function(){
-			$(this).hide();
-		});
 		$.ajaxFileUpload
 		(
 			{
 				url:'libs/ajaxfileupload/doajaxfileupload.php',
 				secureuri:false,
 				fileElementId:'fileToUpload',
-				dataType: 'text',
+				dataType: 'xml',
 				data:{name:'logan', id:'id'},
 				success: function (data, status)
 				{
-					$("#xmlArea").val(data);
+					var xml_string = xmlToString(data);
+					$("#xmlArea").val(xml_string);
+					initialise();
 				},
 				error: function (data, status, e)
 				{
@@ -135,10 +132,12 @@
 			</br></br> 
 			</p>
 		</div>
-		
+		<div id="input_wrapper">
+			Or choose a file as input
 			<input id="fileToUpload" type="file" size="45" name="fileToUpload" class="input">
-			<button class="button" id="buttonUpload" onclick="return uploadFile();">Upload</button>
+			<button class="button" id="buttonUpload" onclick="return uploadFile();">Load and visualize HSSP Curve from file</button>
 			<img id="loading" src="loading.gif" style="display:none;">
+		</div>
 		<div class="filter_wrapper">
 			<h3>Filters</h3>
 
