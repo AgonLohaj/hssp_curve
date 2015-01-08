@@ -100,7 +100,7 @@
 	<meta charset="utf-8">
 	<!-- xml2json is a helper to convert the xml format to json -->
 	
-	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">	
+	<link rel="stylesheet" href="libs/bootstrap.min.css">	
 	
 	<script type="text/javascript" src="libs/jquery/jquery.min.js"></script>
 	
@@ -360,7 +360,15 @@ function plotPoints(){
 					if (this.series.name == "hssp curve") {
 						return false;
 					} else if(this.series.name == "number") {
-						return this.point.y + ' pairs of proteins<br/><br/><i>Click to download</i>';
+					
+						var below_or_above = this.point.id;
+					
+						if(this.point.id == 1) {
+							below_or_above = "above";
+						} else {
+							below_or_above = "below";							
+						}
+						return this.point.y + ' pairs of proteins '+below_or_above+' the hssp curve<br/><br/><i>Click to download</i>';
 					} else {						
 						return '<b>HSSP score: '+this.point.hssp_score.toFixed(2)+'</b><br/>% sequence identity: '+this.point.y.toFixed(2)+'<br/>number of aligned residues: '+this.point.x.toFixed(2);
 					}
@@ -513,11 +521,11 @@ function refreshDownloadableContent(refreshGraph){
             type: 'pie',
 			name: "number",
             data: pie_data,
-            center: [10, '-20%'],
-            size: 50,
+            center: [20, '-22%'],
+            size: 70,
             showInLegend: false,
 			dataLabels :{
-				enabled: true
+				enabled: false
 			},
 			events:{
 				click: function (event){
