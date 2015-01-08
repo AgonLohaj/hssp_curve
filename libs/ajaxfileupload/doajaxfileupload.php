@@ -33,21 +33,30 @@
 			default:
 				$error = 'No error code avaiable';
 		}
-	}else if(empty($_FILES[$fileElementName]['tmp_name']) || $_FILES[$fileElementName]['tmp_name'] == 'none')
+	}
+	else if(empty($_FILES[$fileElementName]['tmp_name']) || $_FILES[$fileElementName]['tmp_name'] == 'none')
 	{
 		$error = 'No file was uploaded..';
-	}else 
+	}
+	else 
 	{
-	$msg .=$_FILES[$fileElementName]['name'];
-		if (move_uploaded_file($_FILES[$fileElementName]['tmp_name'], 'new_file.txt')) {
-			$msg .= "uploaded " . $_FILES[$fileElementName]['tmp_name'] . " (" . $_FILES[$fileElementName]['size'] . " bytes):\n";
-			$msg .= file_get_contents('new_file.txt');
-		}
-		//for security reason, we force to remove all uploaded file
-		@unlink($_FILES['fileToUpload']);		
-	}		
-	echo "{";
-	echo				"error: '" . $error . "',\n";
-	echo				"msg: '" . $msg . "'\n";
-	echo "}";
+	
+			/*
+			$file = fopen($_FILES[$fileElementName]['tmp_name'], "r");
+			
+			while(!feof($file)){
+				echo fgets($file);
+				# do same stuff with the $line
+			}
+			fclose($file);*/
+			$file = new SplFileObject($_FILES[$fileElementName]['tmp_name']);
+			while (!$file->eof()) {
+				echo $file->fgets();
+			}
+			$file = null;
+			//readfile($_FILES[$fileElementName]['tmp_name']);   
+
+
+		//echo file_get_contents($_FILES[$fileElementName]['tmp_name']);	
+	}
 ?>

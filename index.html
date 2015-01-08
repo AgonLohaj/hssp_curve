@@ -42,7 +42,7 @@
 	<link href="libs/range/jquery.range.css" rel="stylesheet">
 	<meta charset="utf-8">
 	<!-- xml2json is a helper to convert the xml format to json -->
-	<script language="javascript" type="text/javascript" src="libs/jquery/jquery.js"></script>
+	<script language="javascript" type="text/javascript" src="libs/jquery/jquery.min.js"></script>
 	<script language="javascript" type="text/javascript" src="xml2json.js"></script>
 	
 	<script src="libs/highchart/highcharts.js"></script>
@@ -50,6 +50,18 @@
 	
 	<script type="text/javascript" src="libs/ajaxfileupload/ajaxfileupload.js"></script>
 	<script type="text/javascript">
+	
+	jQuery.extend({
+		handleError: function( s, xhr, status, e ) {
+			// If a local callback was specified, fire it
+			if ( s.error )
+				s.error( xhr, status, e );
+			// If we have some XML response text (e.g. from an AJAX call) then log it in the console
+			else if(xhr.responseText)
+				console.log(xhr.responseText);
+		}
+	});
+
 	function uploadFile()
 	{
 		$("#loading").ajaxStart(function(){
@@ -63,21 +75,11 @@
 				url:'libs/ajaxfileupload/doajaxfileupload.php',
 				secureuri:false,
 				fileElementId:'fileToUpload',
-				dataType: 'json',
+				dataType: 'text',
 				data:{name:'logan', id:'id'},
 				success: function (data, status)
 				{
-					if(typeof(data.error) != 'undefined')
-					{
-						if(data.error != '')
-						{
-							alert(data.error);
-						}else
-						{
-						console.log(data);
-							alert(data.msg);
-						}
-					}
+					$("#xmlArea").val(data);
 				},
 				error: function (data, status, e)
 				{
@@ -109,7 +111,7 @@
 			 <input type="button" value="Clear" onclick="javascript:eraseText();"> 
 			<button id="show_graph" id="calculate" >Extract Graph</button>			 
 			</br></br>
-			<p style="display:none">
+			<p>
 			Blast Output automatically parsed into JSON:			
 			<textarea id="jsonArea" rows="8"></textarea> 
 			</br></br> 
@@ -166,7 +168,6 @@
 
 
 <script type="text/javascript">
-
 var from = null;
 var to = null;
 			
