@@ -9,6 +9,9 @@
 	<title>HSSP Curve</title>
 
 	<style type="text/css" >
+		.input-group{
+			width:100%;
+		}
 		#container {
 			margin:auto;
 			width:800px;
@@ -28,6 +31,11 @@
 			float:left;
 		}
 		
+		#show_graph {
+			background-color: #2980b9;
+			color: white;
+		}
+		
 		#placeholder {
 			margin-top: 20px;
 			width:800px;
@@ -39,10 +47,15 @@
 			margin-left: 0px;
 		}
 		
+		#buttonUpload {
+			background-color: #3498db;
+			color: white;
+		}
+		
 		#slider-range {
-			float:left;
-			margin:10px;
-			width: 30%;
+/* 			float:left; */
+			margin-top:20px;
+/* 			width: 30%; */
 		}
 		
 		.clear {
@@ -50,12 +63,30 @@
 		}
 		
 		.filter_wrapper {
-			padding:10px;
-			background-color: #fafafa;
+			padding-left:20px !important;
+			color: gray;
+			background-color: #ecf0f1;
+		}
+		
+		.row {
+			margin: 0px !important;
+			padding: 0px;
+		}
+		
+		.nopadding {
+		   padding: 0 !important;
+		   margin: 0 !important;
+		}		
+		
+		.center {
+			text-align: center;
 		}
 	</style>
 	<meta charset="utf-8">
 	<!-- xml2json is a helper to convert the xml format to json -->
+	
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">	
+	
 	<script type="text/javascript" src="libs/jquery/jquery.min.js"></script>
 	
 <!-- 
@@ -66,12 +97,15 @@
 	<script src="libs/jquery-ui/jquery-ui.min.js"></script>	
 	<script type="text/javascript" src="xml2json.js"></script>
 	
+	<script type="text/javascript" src="libs/bootstrap-filestyle.min.js"> </script>
+		
 	<script src="libs/highchart/highcharts.js"></script>
 	<script src="libs/highchart/modules/exporting.js"></script>
 	
 	<script type="text/javascript" src="libs/ajaxfileupload/ajaxfileupload.js"></script>
+
 	<script type="text/javascript">
-	
+
 	jQuery.extend({
 		handleError: function( s, xhr, status, e ) {
 			// If a local callback was specified, fire it
@@ -123,23 +157,66 @@
 		<br/>
 		
 		<div id="input_wrapper">
-			Put the content of the blast output in XML here:
-			<textarea id="xmlArea" rows="1" style="width:100%"></textarea> 
-			 <input type="button" value="Clear" onclick="javascript:eraseText();"> 
-			<button id="show_graph" >Visualize HSSP Curve</button>			 
-			<br/><br/>
-			<p style="display:none" >
-			Blast Output automatically parsed into JSON:			
-			<textarea id="jsonArea" rows="8"></textarea> 
-			<br/><br/>
-			</p>
+			<div class="row">
+				<div class="col-sm-3 nopadding">
+					Choose from file:
+					<div class="row">
+						<div class="input-group">
+							<input id="fileToUpload" class="filestyle" type="file" name="fileToUpload">
+						</div>
+					</div>	 
+					<div class="row">
+						<div class="input-group">
+							<button class="button form-control" id="buttonUpload" onclick="return uploadFile();">Upload</button>
+						</div>
+					</div>	 	
+					<img id="loading" src="./hssp_curve_files/loading.gif" style="display:none;">
+
+				</div>
+				
+				<div class="col-sm-1 nopadding">				
+				</div>				
+				
+				<div class="col-sm-8 nopadding">
+					Content:
+					<div class="row">	
+						<div class="col-sm-10 nopadding">
+							<div class="input-group">
+								<textarea class="form-control" id="xmlArea" rows="1" style="width: 100%; margin-top: 0px; margin-bottom: 0px;"></textarea> 
+							</div>
+						</div>
+						<div class="col-sm-2 nopadding">
+							<div class="input-group">
+								<input type="button" class="form-control" value="Clear" onclick="javascript:eraseText();"> 
+							</div>
+						</div>						
+					</div>
+					<div class="row">	
+						<div class="col-sm-4 nopadding">
+							<div class="input-group">
+								<button class="form-control" id="show_graph">Extract Graph</button>		
+							</div>
+						</div>	 
+					</div>
+				</div>
+				
+				<br/><br/>
+				<p style="display:none">
+				Blast Output automatically parsed into JSON:			
+				<textarea id="jsonArea" rows="8"></textarea> 
+				<br/><br/> 
+				</p>
+			</div>
+		</div>
+
+		<div class="row">
+			<br/>
 		</div>
 		
-			<input id="fileToUpload" type="file" name="fileToUpload" class="input">
-			<button class="button" id="buttonUpload" onclick="return uploadFile();">Upload</button>
-			<img id="loading" src="loading.gif" style="display:none;" alt="loading">
-		<div class="filter_wrapper">
-			<h3>Filters</h3>
+		<div class="row filter_wrapper">
+			<div class="row">
+				<h3>Filters</h3>
+			</div>
 
 <!--
 			<div class="filter">
@@ -148,16 +225,47 @@
 	  		<br/>
 -->	  		
 	  		<div class="filter">
-			Filter based on HSSP score:<br/>
-			<input type="text" id="from" value="-90"/><div id="slider-range"></div><input type="text" id="to" value="80.5"/>
+				Filter based on HSSP score:<br>
+				<div class="row">
+					<div class="col-sm-2">
+					</div>
+					<div class="col-sm-2">
+						<div class="input-group">
+							<input style="width: 100%;" class="form-control" type="text" id="from" value="-90">
+						</div>
+					</div>
+					<div class="nopadding col-sm-4">
+						<div id="slider-range"></div>
+					</div>
+
+					<div class="col-sm-2">
+						<div class="input-group">
+							<input style="width: 100%;" class="form-control" type="text" id="to" value="80.5">
+						</div>
+					</div>
+					<div class="col-sm-2">
+					</div>
+				</div>
 			</div>
-			<div class="clear"></div>
 	  		<div class="filter">
-			HSSP-curve value:
-		  	<input type="range" name="hssp_curve_value" id="hssp_curve_distance" step ="1" value="0" min="-19" max="200">
-		  	<span>0</span>
+				HSSP-curve value:
+				<div class="row">	
+					<div class="col-sm-2">
+					</div>
+				
+					<div class="col-sm-8">		
+						<div class="row">	
+					  		<input type="range" name="hssp_curve_value" id="hssp_curve_distance" step="1" value="0" min="-19" max="200">
+					  	</div>	
+						<div class="row center">						  	
+						  	<span id="range_value">53</span>
+						</div>						  	
+					</div>
+					<div class="col-sm-2">
+					</div>
+				</div>
 			</div>
-			<br/>
+			<br>
 		</div>
 
 		<div id="placeholder"></div>
@@ -673,7 +781,7 @@ function filter_graph(){
 	On mouse move handles which writes the value of the slider on the next html element (a span)
 */
 $('#hssp_curve_distance').mousemove(function() {
-    $(this).next().html(parseInt($(this).val()));
+    $("#range_value").html(parseInt($(this).val()));
 });
 
 /*
@@ -691,6 +799,8 @@ $('#hssp_curve_distance').change(function() {
 	refreshDownloadableContent();
 	plotPoints();
 });
+
+$(":file").filestyle();
 
 	$( "#slider-range" ).slider({
 	  range: true,
