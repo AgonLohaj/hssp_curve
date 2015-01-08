@@ -138,10 +138,10 @@
 		(
 			{
 				url:'doajaxfileupload.php',
-				secureuri:false,
+				secureuri:true,
+				method: 'GET',
 				fileElementId:'fileToUpload',
 				dataType: 'xml',
-				data:{name:'logan', id:'id'},
 				success: function (data, status)
 				{
 					var xml_string = xmlToString(data);
