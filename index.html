@@ -306,7 +306,7 @@ var hssp_curve_distance = 0;
 var original_data = [];
 var data = [];
 var placeholder = $("#placeholder");
-
+var graph;
 function plotPoints(){
 	placeholder.highcharts({
 			title: {
@@ -356,6 +356,7 @@ function plotPoints(){
 			
 			series: data
 	});
+	graph = placeholder.highcharts();
 }
 
 function initialise(){
@@ -389,8 +390,10 @@ function reloadData(){
 	data = jQuery.extend(true, [], original_data);
 	data.push(hssp_curve);
 	refreshDownloadableContent();
-	
-	plotPoints();
+	for(var i =0; i< data.length; i++){
+		console.log(graph.series[i].name + "..." + data[i].name);
+		graph.series[i].update(data[i]);
+	}
 	//plot = $.plot(placeholder, choices, options);
 }
 function makeTextFile(text) {
@@ -574,7 +577,6 @@ function plotHsspCurve(){
 	result.lineWidth = 2,
 	result.marker = {radius: 0};
 	result.pointStart = 0;
-	
 	data.push(result);
 }
 
@@ -801,7 +803,9 @@ $('#hssp_curve_distance').change(function() {
 	data = jQuery.extend(true, [], original_data);
 	plotHsspCurve();
 	refreshDownloadableContent();
-	plotPoints();
+	for(var i =0; i< data.length; i++){
+		graph.series[i].update(data[i]);
+	}
 });
 
 $(":file").filestyle();
