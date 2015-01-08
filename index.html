@@ -47,6 +47,49 @@
 	
 	<script src="libs/highchart/highcharts.js"></script>
 	<script src="libs/highchart/modules/exporting.js"></script>
+	
+	<script type="text/javascript" src="libs/ajaxfileupload/ajaxfileupload.js"></script>
+	<script type="text/javascript">
+	function uploadFile()
+	{
+		$("#loading").ajaxStart(function(){
+			$(this).show();
+		}).ajaxComplete(function(){
+			$(this).hide();
+		});
+		$.ajaxFileUpload
+		(
+			{
+				url:'libs/ajaxfileupload/doajaxfileupload.php',
+				secureuri:false,
+				fileElementId:'fileToUpload',
+				dataType: 'json',
+				data:{name:'logan', id:'id'},
+				success: function (data, status)
+				{
+					if(typeof(data.error) != 'undefined')
+					{
+						if(data.error != '')
+						{
+							alert(data.error);
+						}else
+						{
+						console.log(data);
+							alert(data.msg);
+						}
+					}
+				},
+				error: function (data, status, e)
+				{
+					alert(e);
+				}
+			}
+		)
+		
+		return false;
+
+	}
+	</script>
 </head>
 <body>
 
@@ -73,6 +116,9 @@
 			</p>
 		</div>
 		
+			<input id="fileToUpload" type="file" size="45" name="fileToUpload" class="input">
+			<button class="button" id="buttonUpload" onclick="return uploadFile();">Upload</button>
+			<img id="loading" src="loading.gif" style="display:none;">
 		<div class="filter_wrapper">
 			<h3>Filters</h3>
 
@@ -133,12 +179,6 @@ var hssp_curve_distance = 0;
 var original_data = [];
 var data = [];
 var placeholder = $("#placeholder");
-
-var animator = {
-  steps:20,
-  duration:5,
-  direction: "right"
-}
 
 function plotPoints(){
 	placeholder.highcharts({
@@ -230,7 +270,10 @@ function makeTextFile(text) {
     var data = new Blob([text], {type: 'text/plain'});
     // returns a URL you can use as a href
     return window.URL.createObjectURL(data);
-  };
+};
+
+var aboveUrl;
+var belowUrl;
 
 function refreshDownloadableContent(){
 	var belowZero = 0;
@@ -239,14 +282,13 @@ function refreshDownloadableContent(){
 	var aboveZeroData = "";
 	var prev_hit_above_id = "";
 	var prev_hit_below_id = "";
-	console.log(from + ".." + to);
 	var headerInfo =    "# HIT - Name of a BLAST Hit\r\n" +
 						"# IDE - Percent identity in alignment\r\n" +
 						"# LALI - Length of alignment, excluding gaps\r\n" +
 						"# HSSP - HSSP-Distance using formula from B. Rost's HSSP-Paper 1999\r\n" +
 						"###########################################################################\r\n" +
 						"# Parameters:\r\n" +
-						"# HSSP Curve distance:" + hssp_curve_distance + "\r\n" +
+						"# HSSP Curve distance:" + (hssp_curve_distance*100) + "\r\n" +
 						"# Minimum HSSP Score:" + from + "\r\n" +
 						"# Maximum HSSP Score:" + to + "\r\n";
 						
@@ -259,15 +301,14 @@ function refreshDownloadableContent(){
 	
 	for(var i = data.length - 1; i >= 0; i--) {
 		if(data[i].name != "hssp curve"){
+						
+			var iterationHeader ="###########################################################################\r\n" + 
+								 "#Q: " + data[i].iteration_name + "\r\n" +
+								 "###########################################################################\r\n" +
+								 "HIT                                        IDE         LALI            HSSP\r\n";
+			var iterationHasAbove = 0;
+			var iterationHasBelow = 0;
 			var values = data[i].data;
-			aboveZeroData +="###########################################################################\r\n" + 
-							"#Q: " + data[i].iteration_name + "\r\n" +
-							"###########################################################################\r\n" +
-							"HIT                                        IDE         LALI            HSSP\r\n";
-			belowZeroData +="###########################################################################\r\n" + 
-							"#Q: " + data[i].iteration_name + "\r\n" +
-							"###########################################################################\r\n" +
-							"HIT                                        IDE         LALI            HSSP\r\n";
 			
 			for(var j = values.length - 1; j >= 0; j--) {
 				// if we have a min and max hssp score (fetched from all the alignments), check for filters
@@ -290,13 +331,22 @@ function refreshDownloadableContent(){
 						alignment_length += " ";
 					}
 					var newLine = ID + percentage + alignment_length + hssp_score.toFixed(2) + "\r\n";
+				
 					if(hssp_score>= (hssp_curve_distance*100)){
 						aboveZero++;
+						if(iterationHasAbove == 0){
+							aboveZeroData += iterationHeader;
+							iterationHasAbove++;
+						}
 						aboveZeroData += newLine;
 						//aboveZeroData.push(values[j][3]);
 					}
 					else{
 						belowZero++;
+						if(iterationHasBelow == 0){
+							belowZeroData += iterationHeader;
+							iterationHasBelow++;
+						}
 						belowZeroData += newLine;
 						//belowZeroData.push(values[j][3]);
 					}
@@ -339,11 +389,19 @@ function refreshDownloadableContent(){
         };
 	data.push(pie);
 	var above = document.getElementById('above');
-	above.href = makeTextFile(aboveZeroData);
+	
+	//Revoke previous urls
+	window.URL.revokeObjectURL(aboveUrl);
+	window.URL.revokeObjectURL(belowUrl);
+	
+	aboveUrl = makeTextFile(aboveZeroData);
+	
+	above.href = aboveUrl;
 	//above.href = makeTextFile(JSON.stringify(aboveZeroData));
 	var below = document.getElementById('below');
 	//below.href = makeTextFile(JSON.stringify(belowZeroData));
-	below.href = makeTextFile(belowZeroData);
+	belowUrl = makeTextFile(belowZeroData);
+	below.href = belowUrl;
 	
 	$( "#below" ).html("Download " + belowZero + " pairs of proteins below the hssp curve");
 	$( "#above" ).html("Download " + aboveZero + " pairs of proteins above the hssp curve");
@@ -473,7 +531,6 @@ function fetchIteration(iteration, id){
 		}
 	};
 	result.pointStart = 0;
-	result.animator = animator;
 	original_data.push(result);
 }
 
