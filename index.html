@@ -5,6 +5,9 @@
 -->
 
 <head>
+	
+	<title>HSSP Curve</title>
+
 	<style type="text/css" >
 		#container {
 			margin:auto;
@@ -53,7 +56,7 @@
 	</style>
 	<meta charset="utf-8">
 	<!-- xml2json is a helper to convert the xml format to json -->
-	<script language="javascript" type="text/javascript" src="libs/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="libs/jquery/jquery.min.js"></script>
 	
 <!-- 
 	 jQuery UI 
@@ -61,7 +64,7 @@
  -->
 	<link rel="stylesheet" href="libs/jquery-ui/jquery-ui.min.css">
 	<script src="libs/jquery-ui/jquery-ui.min.js"></script>	
-	<script language="javascript" type="text/javascript" src="xml2json.js"></script>
+	<script type="text/javascript" src="xml2json.js"></script>
 	
 	<script src="libs/highchart/highcharts.js"></script>
 	<script src="libs/highchart/modules/exporting.js"></script>
@@ -97,6 +100,7 @@
 				data:{name:'logan', id:'id'},
 				success: function (data, status)
 				{
+					console.log(data);
 					$("#xmlArea").val(data);
 				},
 				error: function (data, status, e)
@@ -113,32 +117,31 @@
 </head>
 <body>
 
-  <h1 id="title"></h1>
+<!--   <h1 id="title"></h1> -->
   
-  <body>
   	<div id="container">
 		<h1>HSSP CURVE</h1>
 		<div id="description">
 			Briefly explaining what this is and what for.
 		</div>
-		</br>
+		<br/>
 		
 		<div id="input_wrapper">
 			Put the content of the blast output in XML here:
 			<textarea id="xmlArea" rows="1" style="width:100%"></textarea> 
 			 <input type="button" value="Clear" onclick="javascript:eraseText();"> 
-			<button id="show_graph" id="calculate" >Visualize HSSP Curve</button>			 
-			</br></br>
+			<button id="show_graph" >Visualize HSSP Curve</button>			 
+			<br/><br/>
 			<p style="display:none" >
 			Blast Output automatically parsed into JSON:			
 			<textarea id="jsonArea" rows="8"></textarea> 
-			</br></br> 
+			<br/><br/>
 			</p>
 		</div>
 		
-			<input id="fileToUpload" type="file" size="45" name="fileToUpload" class="input">
+			<input id="fileToUpload" type="file" name="fileToUpload" class="input">
 			<button class="button" id="buttonUpload" onclick="return uploadFile();">Upload</button>
-			<img id="loading" src="loading.gif" style="display:none;">
+			<img id="loading" src="loading.gif" style="display:none;" alt="loading">
 		<div class="filter_wrapper">
 			<h3>Filters</h3>
 
@@ -150,7 +153,7 @@
 -->	  		
 	  		<div class="filter">
 			Filter based on HSSP score:<br/>
-			<input type="text" id="from" value="-90"></input><div id="slider-range"></div><input type="text" id="to" value="80.5"></input>
+			<input type="text" id="from" value="-90"/><div id="slider-range"></div><input type="text" id="to" value="80.5"/>
 			</div>
 			<div class="clear"></div>
 	  		<div class="filter">
@@ -163,26 +166,24 @@
 
 		<div id="placeholder"></div>
 		<p style="display:none" id="export">Export:
-			</br>
+			<br/>
 			<a href="javascript:void(0)" download="below.txt" id="below">Download #elements below the hssp curve</a>
-			</br>
+			<br/>
 			<a href="javascript:void(0)" download="above.txt" id="above">Download #elements above the hssp curve</a>
 		</p>
 		<br/>		<br/>		<br/>		<br/>
 		<div id="more_information">
-			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which may contain bad data (test it with your own). The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.</br>
-			</br>Features:
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to filter based on hssp scores
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to zoom by selecting a part of the graph
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download a screen shot of the graph or print it
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download all the elements that are below or above the hssp ruve in .txt format (hint: check out the pie chart)
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to show/hide different data from the legend of the graph (hint: click the legend items and see what happens)
-			</br>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
+			The current implementation works with Blast output version BLASTP 2.2.29+. It is important to note that the values presented here come from a sample output which may contain bad data (test it with your own). The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic">paper</a>.<br/>
+			<br/>Features:
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to filter based on hssp scores
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to zoom by selecting a part of the graph
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download a screen shot of the graph or print it
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download all the elements that are below or above the hssp ruve in .txt format (hint: check out the pie chart)
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to show/hide different data from the legend of the graph (hint: click the legend items and see what happens)
+			<br/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)
 
 		</div>
 	</div>
-</body>
-
 
 <script type="text/javascript">
 var from = null;
@@ -238,7 +239,7 @@ function plotPoints(){
 					if (this.series.name == "hssp curve") {
 						return false;
 					} else if(this.series.name == "number") {
-						return this.point.y + ' pairs of proteins<br><br><i>Click to download</i>';
+						return this.point.y + ' pairs of proteins<br/><br/><i>Click to download</i>';
 					} else {						
 						return '<b>HSSP score: '+this.point.hssp_score.toFixed(2)+'</b><br/>% sequence identity: '+this.point.y.toFixed(2)+'<br/>number of aligned residues: '+this.point.x.toFixed(2);
 					}
@@ -731,3 +732,4 @@ function eraseText(){
 }
 
 </script>
+</body>

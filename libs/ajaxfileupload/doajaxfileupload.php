@@ -49,12 +49,12 @@
 				# do same stuff with the $line
 			}
 			fclose($file);*/
-			$file = new SplFileObject($_FILES[$fileElementName]['tmp_name']);
-			while (!$file->eof()) {
-				echo $file->fgets();
-			}
-			$file = null;
-			//readfile($_FILES[$fileElementName]['tmp_name']);   
+// 			$file = new SplFileObject($_FILES[$fileElementName]['tmp_name']);
+// 			while (!$file->eof()) {
+// 				echo $file->fgets();
+// 			}
+// 			$file = null;
+			echo readfile($_FILES[$fileElementName]['tmp_name']);   
 
 
 		//echo file_get_contents($_FILES[$fileElementName]['tmp_name']);	
