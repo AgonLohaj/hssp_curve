@@ -232,7 +232,7 @@
 						<div class="row hssp_curve_slider">	
 							<div class="col-sm-12">		
 								<div class="row">	
-									<input type="range" name="hssp_curve_value" id="hssp_curve_distance" step="1" value="0" min="-19" max="200">
+									<input type="range" name="hssp_curve_value" id="hssp_curve_distance" step="1" value="0" min="-19" max="20">
 								</div>	
 								<div class="row center">						  	
 									<span id="range_value">53</span>
@@ -414,17 +414,18 @@ function refreshDownloadableContent(refreshGraph){
 						"# LALI - Length of alignment, excluding gaps\r\n" +
 						"# HSSP - HSSP-Distance using formula from B. Rost's HSSP-Paper 1999\r\n" +
 						"###########################################################################\r\n" +
-						"# Parameters:\r\n" +
-						"# HSSP Curve distance:" + (hssp_curve_distance*100).toFixed(2) + "\r\n" +
-						"# Minimum HSSP Score:" + from + "\r\n" +
-						"# Maximum HSSP Score:" + to + "\r\n";
+						"# Parameters:\r\n";
 						
 	aboveZeroData +=    "###########################################################################\r\n" +
 						"# Pairs of Proteins with hssp score greater then the hssp curve\r\n" +
-						headerInfo;
+						headerInfo + 
+						"# Minimum HSSP Score:" + (hssp_curve_distance*100).toFixed(2) + "\r\n" +
+						"# Maximum HSSP Score:" + to + "\r\n";;
 	belowZeroData +=    "###########################################################################\r\n" +
 						"# Pairs of Proteins with hssp score lower then the hssp curve\r\n" +
-						headerInfo;
+						headerInfo +
+						"# Minimum HSSP Score:" + from + "\r\n" +
+						"# Maximum HSSP Score:" + (hssp_curve_distance*100).toFixed(2) + "\r\n";;
 	
 	for(var i = data.length - 1; i >= 0; i--) {
 		if(data[i].name != "hssp curve"){
@@ -448,12 +449,12 @@ function refreshDownloadableContent(refreshGraph){
 					while(ID.length < 43){
 						ID += " ";
 					}
-					var percentage = values[j].y.toFixed(2);  + "";
+					var percentage = values[j].y.toFixed(2)  + "";
 					while(percentage.length < 12){
 						percentage += " ";
 					}
 					
-					var alignment_length = values[j].x.toFixed(2);  + "";
+					var alignment_length = values[j].x  + "";
 					while(alignment_length.length < 16){
 						alignment_length += " ";
 					}
@@ -705,7 +706,6 @@ function fetchPairFromHsp(hit, hsp){
 /*
 	input params:
 		iterationHit: object
-		hspObject: object
 	description:
 	This method extracts the information needed for ploting that is the pair of number of residues aligned and percentage of sequence similarity extracted from the objects retained from the xml input
 	output: 
@@ -713,17 +713,17 @@ function fetchPairFromHsp(hit, hsp){
 */
 function fetchHsspPair(iterationHit, hspObject){
 
-	var length = iterationHit.Hit_len;
+	var length = parseInt(hspObject["Hsp_align-len"]) - hspObject.Hsp_gaps;
 	var hit_num = iterationHit.Hit_num;
 	var id = iterationHit.Hit_id;
-	var number_aligned = parseInt(hspObject["Hsp_align-len"]);
+	var number_aligned = parseInt(hspObject.Hsp_identity);
 	
 	var PID = number_aligned*100/length;
 	var hssp_score = 0;
-	if(number_aligned <= 11){
+	if(length <= 11){
 		hssp_score = PID - 100;
-	} else if(number_aligned <= 450){
-		hssp_score = PID - (480 * Math.pow(number_aligned, -0.32*(1 + Math.exp(-number_aligned/1000))));
+	} else if(length <= 450){
+		hssp_score = PID - (480 * Math.pow(length, -0.32*(1 + Math.exp(-length/1000))));
 	} else {
 		hssp_score = PID - 19.5;
 	}	
@@ -734,12 +734,12 @@ function fetchHsspPair(iterationHit, hspObject){
 	if(percentage > 1){
 		return pair;
 	}
-	if(number_aligned > max_sequence_alignment_length){
-		max_sequence_alignment_length = number_aligned;
+	if(length > max_sequence_alignment_length){
+		max_sequence_alignment_length = length;
 	}
 	
 	// We form number_aligned in the x axis and percentage in y axis
-	pair.x = number_aligned;
+	pair.x = parseInt(length);
 	pair.y = percentage*100;
 	pair.hssp_score = hssp_score;
 	pair.id = id;
