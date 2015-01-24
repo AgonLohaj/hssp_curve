@@ -735,6 +735,10 @@ function fetchHsspPair(iterationHit, hspObject){
 		return pair;
 	}
 	if(length > max_sequence_alignment_length){
+		console.log(hspObject);
+		console.log(id);
+		console.log(percentage*100);
+		console.log(length);
 		max_sequence_alignment_length = length;
 	}
 	
