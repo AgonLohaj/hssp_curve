@@ -160,8 +160,8 @@ var content = require('./content.js');
 var hsspcurve = function(opts){
 	this.el = opts.el;
 	this.el.innerHTML = content.html;
-  
-	this.asd = "asd";
+
+	this.data = opts.data;
 
 	this.render = function(){
 
@@ -660,7 +660,7 @@ var hsspcurve = function(opts){
 
 		// Call a sample input data located within the repository on first run
 		$.ajax({
-			url: 'data/single.xml',
+			url: this.data,
 			method: 'GET',
 			dataType: 'xml',
 			success: onDataReceived
