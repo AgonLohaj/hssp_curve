@@ -8,24 +8,38 @@
 Install the module with: `npm install hssp-curve`
 
 ```javascript
-var curve = require('hssp-curve');
-curve.hello("biojs"); // "hello biojs"
+var hssp_curve = require('hssp-curve');
+var instance = new hssp_curve({el: yourDiv, data: "/single.xml"});
+instance.render();
 ```
 
-## Documentation
+## Documentation 
 
-#### .hello(name)
+#### Constructor;
 
-**Parameter**: `name`
-**Type**: `String`
-**Example**: `biojs`
+The constructor expects an array parameter with these elements:
+**Parameter**: `el`
+**Type**: `DOM element`
+**Example**: `$("#yourDiv")`
 
-The 'hello' method is responsible for showing a name.
+**Parameter**: `data`
+**Type**: `XML data reference`
+**Example**: `/single.xml`
 
-How to use this method
+The constructor of the HSSP Curve is responsible for initializing the HSSP Curve and appending the fundamental html elements to yourDiv
 
 ```javascript
-curve.hello('biojs'); // "hello biojs"
+var instance = new hssp_curve({el: yourDiv, data: "/single.xml"});
+```
+
+#### Render;
+
+The render method has no parameters.
+
+This method will bind the event handlers to the html inputs and will render the graph.
+
+```javascript
+instance.render();
 ```
 
 ## Contributing
@@ -35,6 +49,14 @@ All contributions are welcome.
 ## Support
 
 If you have any problem or suggestion please open an issue [here](https://github.com/bardhlohaj/hssp-curve/issues).
+
+## Highcharts (http://www.highcharts.com/)
+
+This tool is build using highcharts which is a library free for personal websites, school sites, or non-profit organizations. If you are thinking to use this tool for other purposes, you need the highchart author's permissions. 
+
+Quoted from highcharts website:
+"Do you want to use products for a personal website, a school site or a non-profit organisation? Then you don't need the author's permission, just go on and download. For commercial websites and projects, see License and Pricing."
+https://shop.highsoft.com/
 
 ## License 
 This software is licensed under the Apache 2 license, quoted below.
