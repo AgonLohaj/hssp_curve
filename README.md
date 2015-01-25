@@ -19,7 +19,7 @@ instance.render();
 
 ## Documentation 
 
-#### Constructor;
+#### Constructor Method;
 
 The constructor expects an array parameter with these elements:
 
@@ -31,13 +31,13 @@ The constructor expects an array parameter with these elements:
 **Type**: `XML data reference`
 **Example**: `/single.xml`
 
-The constructor of the HSSP Curve is responsible for initializing the HSSP Curve and appending the fundamental html elements to yourDiv
+The constructor of the HSSP Curve is responsible for initializing the HSSP Curve and appending the fundamental html elements to `yourDiv`
 
 ```javascript
 var instance = new hssp_curve({el: yourDiv, data: "/single.xml"});
 ```
 
-#### Render;
+#### Render Method;
 
 The render method has no parameters.
 
@@ -55,7 +55,7 @@ All contributions are welcome.
 
 If you have any problem or suggestion please open an issue [here](https://github.com/bardhlohaj/hssp-curve/issues).
 
-## Highcharts (http://www.highcharts.com/)
+## Highcharts License (http://www.highcharts.com/)
 
 This tool is build using highcharts which is a library free for personal websites, school sites, or non-profit organizations. If you are thinking to use this tool for other purposes, you need the highchart author's permissions. 
 
