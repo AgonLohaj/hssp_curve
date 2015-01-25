@@ -5,7 +5,11 @@
 > Visualize the HSSP curve and impose the BLAST-derived sequence alignments and allow the user to dynamically filter and export the data shown on the graph for better insights.
 
 ## Getting Started
-Install the module with: `npm install hssp-curve`
+Install the module with: 
+
+`npm install hssp-curve`
+
+A simple example how to use the component:
 
 ```javascript
 var hssp_curve = require('hssp-curve');
@@ -18,6 +22,7 @@ instance.render();
 #### Constructor;
 
 The constructor expects an array parameter with these elements:
+
 **Parameter**: `el`
 **Type**: `DOM element`
 **Example**: `$("#yourDiv")`
