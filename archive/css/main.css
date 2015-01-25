@@ -1,0 +1,98 @@
+
+		body {
+			font-family: Verdana !important;
+		}
+		
+		.input-group{
+			width:100%;
+		}
+		#container {
+			margin:auto;
+			width:800px;
+			height:800px;
+		}
+		
+		#from {
+			display: block;
+			width:30px;
+			margin:8px 5px 8px 5px;			
+			float:left;
+		}
+		#to {
+			display: block;
+			width:30px;
+			margin:8px 5px 8px 5px;			
+			float:left;
+		}
+		
+		#show_graph {
+			background-color: #3498db;
+			color: white;
+		}
+		
+		div.ui-slider-range.ui-widget-header {
+			background: #3498db;
+		}
+		
+		#placeholder {
+			margin-top: 20px;
+			width:800px;
+			height:60%;
+		}
+		
+		#input_wrapper {
+			padding: 20px 10px 20px 10px;
+			margin-top: 0px;
+			margin-left: 0px;
+		    border-radius: 5px;						
+			border: 1px solid #3498db;
+		}
+		
+		#more_information {
+			padding: 20px 10px 20px 10px;		
+		    border-radius: 5px;						
+			border: 1px solid #3498db;		
+		}
+		
+		#buttonUpload {
+			background-color: #3498db;
+			color: white;
+		}
+		
+		#slider-range {
+/* 			float:left; */
+			margin-top:20px;
+/* 			width: 30%; */
+		}
+		
+		.clear {
+			clear: both;
+		}
+		
+		.filter_wrapper {
+			padding-left:20px !important;
+/* 			border: 1px solid #3498db; */
+/* 			background-color: #2c3e50; */
+			border: 1px solid #3498db;
+		    border-radius: 5px;			
+			color: #2c3e50;
+		}
+		
+		.row {
+			margin: 0px !important;
+			padding: 0px;
+		}
+		
+
+		.hssp_curve_slider {
+			margin-top: 15px !important;
+		}		
+		
+		.nopadding {
+		   padding: 0 !important;
+		   margin: 0 !important;
+		}		
+		
+		.center {
+			text-align: center;
+		}

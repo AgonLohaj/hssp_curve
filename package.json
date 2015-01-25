@@ -1,0 +1,66 @@
+{
+  "name": "hssp-curve",
+  "description": "Visualize the HSSP curve and impose the BLAST-derived sequence alignments and allow the user to dynamically filter and export the data shown on the graph for better insights.",
+  "version": "1.0.003",
+  "homepage": "https://github.com/AgonLohaj/hssp_curve",
+  "contributors": [
+  		{"name": "Agon Lohaj", "email": "agon.lohaj@gmail.com"}, {"name":"Bardh Lohaj", "email":"bardh.lohaj@gmail.com"},
+		{
+		"name": "Tatyana Goldberg"
+		},
+		{
+		"name": "Juan Miguel Cejuela"
+		},	
+		{
+		"name": "Prof. Burkhard Rost"
+		}
+  	],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/AgonLohaj/hssp_curve.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AgonLohaj/hssp_curve/issues"
+  },
+  "licenses": [
+    {
+      "type": "Apache 2",
+      "url": "https://github.com/AgonLohaj/hssp_curve/blob/master/LICENSE"
+    }
+  ],
+  "main": "lib/index.js",
+  "scripts": {
+		"test": "echo 'Error: no test specified' && exit 1",
+		"build": "gulp build",
+		"build-browser": "gulp build-browser",
+		"build-browser-min": "gulp build-browser-gzip",
+		"prepublish": "gulp build",
+		"watch": "gulp watch",
+		"test-watch": "gulp test-watch",
+		"sniper": "biojs-sniper ."
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+		"mkdirp": "^0.5.0",
+		"browserify": "6.x",
+		"biojs-sniper": "0.x",
+		"watchify": "^1.0.6",
+		"gulp-jshint": "1.x",
+		"del": "^0.1.3",
+		"gulp": "^3.8.8",
+		"gulp-chmod": "^1.1.1",
+		"gulp-gzip": "^0.0.8",
+		"gulp-rename": "^1.2.0",
+		"gulp-streamify": "^0.0.5",
+		"gulp-uglify": "^1.0.1",
+		"gulp-util": "^3.0.1",
+		"vinyl-source-stream": "^1.0.0"
+  }, 
+  "sniper": {
+    "js": [ "/build/curve.js"],
+    "snippets": ["examples"],
+    "first": "simple"
+   }, 
+  "keywords": ["biojs", "visualization", "hssp-curve","hssp","curve"]
+}

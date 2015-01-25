@@ -1,0 +1,15 @@
+
+{
+	"name": "hssp-curve",	
+	"version": "1.0.0",
+	"private": true,
+	"description": "Visualize the HSSP curve and impose the BLAST-derived sequence alignments and allow the user to dynamically filter and export the data shown on the graph for better insights.",
+	"contributors": [{"name": "Agon Lohaj", "email": "agon.lohaj@gmail.com"}, {"name":"Bardh Lohaj", "email":"bardh.lohaj@gmail.com"}],
+	"dependencies": {
+  	},
+  	"keywords": ["hssp-curve", "hssp", "curve", "biojs"],
+  	"repository": {
+  		"type": "git",
+  		"url": "https://github.com/AgonLohaj/hssp_curve.git"
+  	}
+}
