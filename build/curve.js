@@ -19,7 +19,7 @@ strVar += "						<\/div>";
 strVar += "					<\/div>	 ";
 strVar += "				<\/div>";
 strVar += "				";
-strVar += "				<div class=\"col-sm-1 nopadding\">				";
+strVar += "				<div class=\"col-sm-1\">";
 strVar += "				<\/div>				";
 strVar += "				";
 strVar += "				<div class=\"col-sm-8 nopadding\">";
