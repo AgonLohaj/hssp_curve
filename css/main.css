@@ -96,3 +96,7 @@
 		.center {
 			text-align: center;
 		}
+		
+		.content-buttons {
+			margin-top: 8px !important;
+		}

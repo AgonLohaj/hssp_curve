@@ -19,32 +19,30 @@ strVar += "						<\/div>";
 strVar += "					<\/div>	 ";
 strVar += "				<\/div>";
 strVar += "				";
-strVar += "				<div class=\"col-sm-1\">";
+strVar += "				<div class=\"col-sm-1 nopadding\">				";
 strVar += "				<\/div>				";
 strVar += "				";
 strVar += "				<div class=\"col-sm-8 nopadding\">";
 strVar += "					Content:";
 strVar += "					<div class=\"row\">	";
-strVar += "						<div class=\"col-sm-10 nopadding\">";
+strVar += "						<div class=\"col-sm-12 nopadding\">";
 strVar += "							<div class=\"input-group\">";
 strVar += "								<textarea class=\"form-control\" id=\"xmlArea\" rows=\"1\" style=\"width: 100%; margin-top: 0px; margin-bottom: 0px;\"><\/textarea> ";
 strVar += "							<\/div>";
 strVar += "						<\/div>";
-strVar += "						<div class=\"col-sm-2 nopadding\">";
-strVar += "							<div class=\"input-group\">";
-strVar += "								<input type=\"button\" class=\"form-control\" value=\"Clear\" onclick=\"javascript:eraseText();\"> ";
-strVar += "							<\/div>";
-strVar += "						<\/div>						";
 strVar += "					<\/div>";
-strVar += "					<div class=\"row\">	";
-strVar += "						<div class=\"col-sm-4 nopadding\">";
-strVar += "						<\/div>	 					";
+strVar += "					<div class=\"row content-buttons\">	";
 strVar += "						<div class=\"col-sm-4 nopadding\">";
 strVar += "							<div class=\"input-group\">";
 strVar += "								<button class=\"form-control\" id=\"show_graph\">Extract Graph<\/button>		";
 strVar += "							<\/div>";
 strVar += "						<\/div>	 ";
-strVar += "						<div class=\"col-sm-4 nopadding\">";
+strVar += "						<div class=\"col-sm-2 nopadding\">";
+strVar += "							<div class=\"input-group\">";
+strVar += "								<input type=\"button\" class=\"form-control\" value=\"Clear\" onclick=\"javascript:eraseText();\"> ";
+strVar += "							<\/div>";
+strVar += "						<\/div>						";
+strVar += "						<div class=\"col-sm-6 nopadding\">";
 strVar += "						<\/div>	 						";
 strVar += "					<\/div>";
 strVar += "				<\/div>";
@@ -299,7 +297,14 @@ var hsspcurve = function(opts){
 
 		var aboveUrl;
 		var belowUrl;
-
+		
+		/*
+			input params:
+				refreshGraph: a flag to indicate wether or not the method should refresh the data within the graph immediately,
+							  if not true the graph will not be updated but rather should be initialized later by the caller of this method
+			description:
+				filters the data based on min and max hssp scores, stores the downloadable text files in memory and plots the pie chart into the graph
+		*/
 		function refreshDownloadableContent(refreshGraph){
 			var belowZero = 0;
 			var aboveZero = 0;
@@ -307,6 +312,7 @@ var hsspcurve = function(opts){
 			var aboveZeroData = "";
 			var prev_hit_above_id = "";
 			var prev_hit_below_id = "";
+			// header information on the extracted text files
 			var headerInfo =    "# HIT - Name of a BLAST Hit\r\n" +
 								"# IDE - Percent identity in alignment\r\n" +
 								"# LALI - Length of alignment, excluding gaps\r\n" +
@@ -389,7 +395,7 @@ var hsspcurve = function(opts){
 						name: '# below HSSP Curve',
 						id: 2,
 						y: belowZero,
-						color: Highcharts.getOptions().colors[1] // John's color
+						color: Highcharts.getOptions().colors[1]
 					}];
 			var pie = {
 					type: 'pie',
@@ -511,22 +517,34 @@ var hsspcurve = function(opts){
 		*/
 		function fetchData(){
 
-			original_data = [];
-			var json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
-			$("#jsonArea").val(json);
-			json = jQuery.parseJSON(json);
-			var result = json.BlastOutput.BlastOutput_iterations;
-			var i = 1;
-			if($.isArray(result.Iteration)){
-				$.each(result.Iteration, function(key, iteration){
-					fetchIteration(iteration, i);
-					i++;
-				});
-			}else{
-				fetchIteration(result.Iteration, i);
+			try{
+				var json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
+				$("#jsonArea").val(json);
+				json = jQuery.parseJSON(json);
+				original_data = [];
+				var result = json.BlastOutput.BlastOutput_iterations;
+				var i = 1;
+				if($.isArray(result.Iteration)){
+					$.each(result.Iteration, function(key, iteration){
+						fetchIteration(iteration, i);
+						i++;
+					});
+				}else{
+					fetchIteration(result.Iteration, i);
+				}
+			}
+			catch(ex){
+				alert("The data you have provided is not in the correct format. Check the data and try again later");
 			}
 		}
 
+		/*
+			input params:
+				iteration: the iteration object extracted from the xml
+				id: an increasing integer used to name the iterations
+			description:
+			Extracts the data from each iteration object on the blast input, id is used to name the iterations
+		*/
 		function fetchIteration(iteration, id){
 			var label = iteration["Iteration_query-def"];
 			var hits = iteration.Iteration_hits.Hit;
@@ -573,7 +591,16 @@ var hsspcurve = function(opts){
 			result.pointStart = 0;
 			original_data.push(result);
 		}
-
+		/*
+			input params:
+				hit: the hit object passed on from the input
+				hsp: the hsp objects passed on for the current hit object (Note that this may be an array or one objet
+			description:
+				Calculates and returns the optimal hsp score from multiple scores within each hit
+			output:
+				pair: of number of residues aligned and percentage of sequence similarity chosen optimally between multiple hsp or
+				return the first calculated hssp pair in case of a single hsp object.
+		*/
 		function fetchPairFromHsp(hit, hsp){
 			// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
 			if($.isArray(hsp)) {
@@ -603,7 +630,8 @@ var hsspcurve = function(opts){
 
 		/*
 			input params:
-				iterationHit: object
+				iterationHit: object containing the hit definition from the input
+				hspObject: the next object to be considered for the current iterationHit
 			description:
 			This method extracts the information needed for ploting that is the pair of number of residues aligned and percentage of sequence similarity extracted from the objects retained from the xml input
 			output: 

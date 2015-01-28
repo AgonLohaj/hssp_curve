@@ -17,6 +17,15 @@ var instance = new hssp_curve({el: yourDiv, data: "/single.xml"});
 instance.render();
 ```
 
+## About this project
+
+Is is developed using jquery, jquery UI, bootstrap and highcharts.
+The tool parses the xml input, turns it into readable json and then plots the data extracted from the json into the graph. It supports Blast output version BLASTP 2.2.29+.
+
+In the blast output, multiple hits are parsed and from the hsp objects the best is chosen to be displayed in the graph. Taking into account the hssp curve distance and hssp score min and max values the tool will prepare the downloadable content and allow the user to export the data in text files.
+
+When a new input file comes in, the tool will re-initialise the graph. Once it does so, all the filtering will be done by just refreshing the already displayed data (hiding and showing points, moving the curve and re-create the text documents to be downloaded).
+
 ## Documentation 
 
 #### Constructor Method;

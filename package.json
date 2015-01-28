@@ -6,13 +6,16 @@
   "contributors": [
   		{"name": "Agon Lohaj", "email": "agon.lohaj@gmail.com"}, {"name":"Bardh Lohaj", "email":"bardh.lohaj@gmail.com"},
 		{
-		"name": "Tatyana Goldberg"
+			"name": "Tatyana Goldberg",
+			"url": "https://rostlab.org/~goldberg/"
 		},
 		{
-		"name": "Juan Miguel Cejuela"
+			"name": "Juan Miguel Cejuela",
+			"url": "https://www.tagtog.net/"
 		},	
 		{
-		"name": "Prof. Burkhard Rost"
+			"name": "Prof. Burkhard Rost",
+			"url": "https://en.wikipedia.org/wiki/Burkhard_Rost"
 		}
   	],
   "repository": {
