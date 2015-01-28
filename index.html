@@ -137,7 +137,6 @@
 			Visualize the HSSP curve and impose the BLAST-derived sequence alignments and allow the user to dynamically filter and export the data shown on the graph for better insights.
 		</div>
 		<br/>
-		
 		<div id="input_wrapper">
 			<div class="row">
 				<div class="col-sm-3 nopadding">
@@ -159,26 +158,24 @@
 							<div class="input-group">
 								<textarea class="form-control" id="xmlArea" rows="1" style="width: 100%; margin-top: 0px; margin-bottom: 0px;"></textarea> 
 							</div>
-						</div>
-						<div class="col-sm-2 nopadding">
-							<div class="input-group">
-								<input type="button" class="form-control" value="Clear" onclick="javascript:eraseText();"> 
-							</div>
-						</div>						
+						</div>				
 					</div>
-					<div class="row">	
-						<div class="col-sm-4 nopadding">
-						</div>	 					
+					<div class="row">	 					
 						<div class="col-sm-4 nopadding">
 							<div class="input-group">
 								<button class="form-control" id="show_graph">Extract Graph</button>		
 							</div>
 						</div>	 
 						<div class="col-sm-4 nopadding">
-						</div>	 						
+						</div>	 
+
+						<div class="col-sm-2 nopadding">
+							<div class="input-group">
+								<input type="button" class="form-control" value="Clear" onclick="javascript:eraseText();"> 
+							</div>
+						</div>								
 					</div>
 				</div>
-				
 				<br/><br/>
 				<p style="display:none">
 				Blast Output automatically parsed into JSON:			
@@ -186,6 +183,16 @@
 				<br/><br/> 
 				</p>
 			</div>
+		</div>
+		<div class="row">
+			<br/>
+		</div>
+		
+		<div class="alert alert-danger">
+			<button type="button" class="close" data-dismiss="alert">&times;</button>
+			<h4>Error parsing the input!</h4>
+			The input xml you have provided cannot be parsed. Please check the data and try again later.</br>
+			Note that this version of the tool supports only Blast output version BLASTP 2.2.29+
 		</div>
 
 		<div class="row">
@@ -281,7 +288,10 @@ var data = [];
 var placeholder = $("#placeholder");
 var graph;
 
-
+$(".close").click(function() {
+	$(".alert").slideUp();
+});
+$(".alert").hide();
 	
 	
 document.getElementById('fileToUpload').onchange = function(){
@@ -613,19 +623,24 @@ function xmlToString(xmlData) {
 */
 function fetchData(){
 
-	original_data = [];
-	var json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
-	$("#jsonArea").val(json);
-	json = jQuery.parseJSON(json);
-	var result = json.BlastOutput.BlastOutput_iterations;
-	var i = 1;
-	if($.isArray(result.Iteration)){
-		$.each(result.Iteration, function(key, iteration){
-			fetchIteration(iteration, i);
-			i++;
-		});
-	}else{
-		fetchIteration(result.Iteration, i);
+	try{
+		var json = JSON.stringify(x2js.xml_str2json($("#xmlArea").val()));
+		$("#jsonArea").val(json);
+		json = jQuery.parseJSON(json);
+		original_data = [];
+		var result = json.BlastOutput.BlastOutput_iterations;
+		var i = 1;
+		if($.isArray(result.Iteration)){
+			$.each(result.Iteration, function(key, iteration){
+				fetchIteration(iteration, i);
+				i++;
+			});
+		}else{
+			fetchIteration(result.Iteration, i);
+		}
+	}
+	catch(Exception){
+		$(".alert").slideDown();
 	}
 }
 
