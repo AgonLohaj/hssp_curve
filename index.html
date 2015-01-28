@@ -690,7 +690,7 @@ function fetchIteration(iteration, id){
 			}
 		}
 	};
-	result.pointStart = 0;
+	result.pointStart = 0
 	original_data.push(result);
 }
 
@@ -731,7 +731,7 @@ function fetchPairFromHsp(hit, hsp){
 */
 function fetchHsspPair(iterationHit, hspObject){
 
-	var length = parseInt(hspObject["Hsp_align-len"]) - hspObject.Hsp_gaps;
+	var length = parseInt(hspObject["Hsp_align-len"]) - (hspObject.Hsp_gaps == null ? 0 : hspObject.Hsp_gaps);
 	var hit_num = iterationHit.Hit_num;
 	var id = iterationHit.Hit_id;
 	var number_aligned = parseInt(hspObject.Hsp_identity);
@@ -784,7 +784,7 @@ function onDataReceived(xml) {
 
 // Call a sample input data located within the repository on first run
 $.ajax({
-	url: 'data/single.xml',
+	url: 'data/ebi.xml',
 	method: 'GET',
 	dataType: 'xml',
 	success: onDataReceived
