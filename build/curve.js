@@ -56,6 +56,15 @@ strVar += "				<\/p>";
 strVar += "			<\/div>";
 strVar += "		<\/div>";
 strVar += "";
+strVar += "     <div class=\"row\">";
+strVar += "			<br/>";
+strVar += "		</div>";
+strVar += "		<div class=\"alert alert-danger\">"
+strVar += "			<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button>";
+strVar += "			<h4>Error parsing the input!</h4>";
+strVar += "			The input xml you have provided cannot be parsed. Please check the data and try again later.</br>";
+strVar += "			Note that this version of the tool supports only Blast output version BLASTP 2.2.29+";
+strVar += "		</div>";
 strVar += "		<div class=\"row\">";
 strVar += "			<br\/>";
 strVar += "		<\/div>";
@@ -178,7 +187,10 @@ var hsspcurve = function(opts){
 		var graph;
 
 
-	
+		$(".close").click(function() {
+			$(".alert").slideUp();
+		});
+		$(".alert").hide();
 	
 		document.getElementById('fileToUpload').onchange = function(){
 		  var file = this.files[0];
