@@ -546,7 +546,7 @@ var hsspcurve = function(opts){
 				}
 			}
 			catch(ex){
-				alert("The data you have provided is not in the correct format. Check the data and try again later");
+				$(".alert").slideDown();
 			}
 		}
 
