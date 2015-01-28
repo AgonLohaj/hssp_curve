@@ -651,7 +651,7 @@ var hsspcurve = function(opts){
 		*/
 		function fetchHsspPair(iterationHit, hspObject){
 
-			var length = parseInt(hspObject["Hsp_align-len"]) - hspObject.Hsp_gaps;
+			var length = parseInt(hspObject["Hsp_align-len"]) - (hspObject.Hsp_gaps == null ? 0 : hspObject.Hsp_gaps);
 			var hit_num = iterationHit.Hit_num;
 			var id = iterationHit.Hit_id;
 			var number_aligned = parseInt(hspObject.Hsp_identity);
