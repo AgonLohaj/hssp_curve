@@ -414,7 +414,13 @@ function makeTextFile(text) {
 
 var aboveUrl;
 var belowUrl;
-
+/*
+	input params:
+		refreshGraph: a flag to indicate wether or not the method should refresh the data within the graph immediately,
+					  if not true the graph will not be updated but rather should be initialized later by the caller of this method
+	description:
+		filters the data based on min and max hssp scores, stores the downloadable text files in memory and plots the pie chart into the graph
+*/
 function refreshDownloadableContent(refreshGraph){
 	var belowZero = 0;
 	var aboveZero = 0;
@@ -557,6 +563,8 @@ function refreshDownloadableContent(refreshGraph){
 }
 
 /*
+	input:
+		refreshGraph: a flag to indicate wether or not the method should refresh the data within the graph immediately
 	description:
 	This function plots the hsspcurve over the data extracted from the input.
 */
@@ -647,6 +655,13 @@ function fetchData(){
 	}
 }
 
+/*
+	input params:
+		iteration: the iteration object extracted from the xml
+		id: an increasing integer used to name the iterations
+	description:
+	Extracts the data from each iteration object on the blast input, id is used to name the iterations
+*/
 function fetchIteration(iteration, id){
 	var label = iteration["Iteration_query-def"];
 	var hits = iteration.Iteration_hits.Hit;
@@ -694,6 +709,16 @@ function fetchIteration(iteration, id){
 	original_data.push(result);
 }
 
+/*
+	input params:
+		hit: the hit object passed on from the input
+		hsp: the hsp objects passed on for the current hit object (Note that this may be an array or one objet
+	description:
+		Calculates and returns the optimal hsp score from multiple scores within each hit
+	output:
+		pair: of number of residues aligned and percentage of sequence similarity chosen optimally between multiple hsp or
+		return the first calculated hssp pair in case of a single hsp object.
+*/
 function fetchPairFromHsp(hit, hsp){
 	// From the blast output there are cases where only 1 hit was found, in that case an object will be parsed here otherwise the hits are stored into an array
 	if($.isArray(hsp)) {
@@ -723,7 +748,8 @@ function fetchPairFromHsp(hit, hsp){
 
 /*
 	input params:
-		iterationHit: object
+		iterationHit: object containing the hit definition from the input
+		hspObject: the next object to be considered for the current iterationHit
 	description:
 	This method extracts the information needed for ploting that is the pair of number of residues aligned and percentage of sequence similarity extracted from the objects retained from the xml input
 	output: 
