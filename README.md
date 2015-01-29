@@ -50,6 +50,14 @@ The constructor expects an array parameter with these elements:
 **Type**: `XML data reference`
 **Example**: `/single.xml`
 
+**Parameter**: `showTitle`
+**Type**: `boolean`
+**Example**: `true` // by default : false;
+
+**Parameter**: `showDescription`
+**Type**: `boolean`
+**Example**: `true` // by default : false;
+
 The constructor of the HSSP Curve is responsible for initializing the HSSP Curve and appending the fundamental html elements to `yourDiv`
 
 ```javascript
@@ -65,6 +73,8 @@ This method will bind the event handlers to the html inputs and will render the 
 ```javascript
 instance.render();
 ```
+
+
 
 ## Contributing
 
