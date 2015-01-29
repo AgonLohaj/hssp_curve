@@ -21,8 +21,8 @@ instance.render();
 
 Is is developed using jquery, jquery UI, bootstrap and highcharts.
 The tool parses the xml input, turns it into readable json and then plots the data extracted from the json into the graph. It supports Blast output version BLASTP 2.2.29+. 
-The input loaded here by default come from a sample output which may contain bad data so, for better understanding alignment result. For generating the alignment output, you can use <a href=\"http:\/\/blast.ncbi.nlm.nih.gov\/Blast.cgi\">BLAST<\/a>.
-The algorithm for calculating HSSP Curve and HSSP ferenced from this <a href=\"http:\/\/www.ncbi.nlm.nih.gov\/pmc\/articles\/PMC169026\/?report=classic\">paper<\/a>.
+The input loaded here by default come from a sample output which may contain bad data so, for better understanding alignment result. For generating the alignment output, you can use [BLAST](http://blast.ncbi.nlm.nih.gov/Blast.cgi).
+The algorithm for calculating HSSP Curve and HSSP referenced from this [paper](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC169026/?report=classic).
 
 In the blast output, multiple hits are parsed and from the hsp objects the best is chosen to be displayed in the graph. Taking into account the hssp curve distance and hssp score min and max values the tool will prepare the downloadable content and allow the user to export the data in text files.
 
