@@ -2,7 +2,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 var strVar="";
 strVar += "";
 strVar += "  	<div id=\"container\">";
-strVar += "		<h1>HSSP CURVE<\/h1>";
+strVar += "		<h1 id=\"title\">HSSP CURVE<\/h1>";
 strVar += "		<div id=\"description\">";
 strVar += "			Visualize the HSSP curve and impose the BLAST-derived sequence alignments and allow the user to dynamically filter and export the data shown on the graph for better insights.";
 strVar += "		<\/div>";
@@ -120,17 +120,6 @@ strVar += "			<a href=\"javascript:void(0)\" download=\"below.txt\" id=\"below\"
 strVar += "			<br\/>";
 strVar += "			<a href=\"javascript:void(0)\" download=\"above.txt\" id=\"above\">Download #elements above the hssp curve<\/a>";
 strVar += "		<\/p>";
-strVar += "		<br\/>		<br\/>		<br\/>		<br\/>";
-strVar += "		<div id=\"more_information\">";
-strVar += "			The current implementation works with Blast output version BLASTP 2.2.29+. The input loaded here by default come from a sample output which may contain bad data so, for better understanding use your own alignment result. For generating the alignment output, you can use <a href=\"http:\/\/blast.ncbi.nlm.nih.gov\/Blast.cgi\">BLAST<\/a>.<br\/>The algorithm for calculating HSSP Curve and HSSP Values is referenced from this <a href=\"http:\/\/www.ncbi.nlm.nih.gov\/pmc\/articles\/PMC169026\/?report=classic\">paper<\/a>.<br\/>";
-strVar += "			<br\/>Features:";
-strVar += "			<br\/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to filter based on hssp scores";
-strVar += "			<br\/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to zoom by selecting a part of the graph";
-strVar += "			<br\/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download a screenshot of the graph or print it";
-strVar += "			<br\/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to download all the elements that are below or above the hssp curve in .txt format (hint: check out the pie chart)";
-strVar += "			<br\/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to show\/hide different data from the legend of the graph";
-strVar += "			<br\/>&nbsp;&nbsp;&nbsp;&nbsp;Ability to define the distance from the hssp curve (0 being the original hssp curve)";
-strVar += "		<\/div>";
 strVar += "		<br\/><br\/><br\/><br\/><br\/><br\/>";
 strVar += "	<\/div>";
 
@@ -155,10 +144,23 @@ module.exports = content;
 
 var content = require('./content.js');
 
+
 var hsspcurve = function(opts){
 	this.el = opts.el;
 	this.el.innerHTML = content.html;
-  
+	
+	if (typeof opts.showDescription !== 'undefined') {
+		this.showDescription = opts.showDescription;
+	} else {
+		this.showDescription = false;
+	}
+	
+	if (typeof opts.showTitle !== 'undefined') {
+		this.showTitle = opts.showTitle;
+	} else {
+		this.showTitle = false;
+	}
+	
 	this.data = opts.data;
 
 	this.render = function(){
@@ -176,9 +178,14 @@ var hsspcurve = function(opts){
 		var data = [];
 		var placeholder = $("#placeholder");
 		var graph;
-
-
 	
+		if(this.showTitle == false){
+			$(this.el).find("#title").hide();
+		}
+
+		if(this.showDescription == false){
+			$(this.el).find("#description").hide();					
+		}
 	
 		document.getElementById('fileToUpload').onchange = function(){
 		  var file = this.files[0];

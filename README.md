@@ -20,11 +20,21 @@ instance.render();
 ## About this project
 
 Is is developed using jquery, jquery UI, bootstrap and highcharts.
-The tool parses the xml input, turns it into readable json and then plots the data extracted from the json into the graph. It supports Blast output version BLASTP 2.2.29+.
+The tool parses the xml input, turns it into readable json and then plots the data extracted from the json into the graph. It supports Blast output version BLASTP 2.2.29+. 
+The input loaded here by default come from a sample output which may contain bad data so, for better understanding alignment result. For generating the alignment output, you can use <a href=\"http:\/\/blast.ncbi.nlm.nih.gov\/Blast.cgi\">BLAST<\/a>.
+The algorithm for calculating HSSP Curve and HSSP ferenced from this <a href=\"http:\/\/www.ncbi.nlm.nih.gov\/pmc\/articles\/PMC169026\/?report=classic\">paper<\/a>.
 
 In the blast output, multiple hits are parsed and from the hsp objects the best is chosen to be displayed in the graph. Taking into account the hssp curve distance and hssp score min and max values the tool will prepare the downloadable content and allow the user to export the data in text files.
 
 When a new input file comes in, the tool will re-initialise the graph. Once it does so, all the filtering will be done by just refreshing the already displayed data (hiding and showing points, moving the curve and re-create the text documents to be downloaded).
+
+Features:
+Ability to filter based on hssp scores
+Ability to zoom by selecting a part of the graph
+Ability to download a screenshot of the graph or print it
+Ability to download all the elements that are below or above the hssp curve in .txt format (hint: check out the pie chart)
+Ability to show\/hide different data from the legend of the graph
+Ability to define the distance from the hssp curve (0 being the original hssp curve)
 
 ## Documentation 
 
